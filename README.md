@@ -1,4 +1,5 @@
-# SharpExt4
+# SharpExt4 
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=C2RXG8SGHT366)
 
 ## About
 =====
