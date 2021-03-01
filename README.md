@@ -1,12 +1,11 @@
 # SharpExt4 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dushun@gmail.com&lc=US&item_name=
-Donation+to+SharpExt4&no_note=0&cn=&currency_code=USD&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=C2RXG8SGHT366)
 
 ## About
 
-The main goal of the SharpExt4 project is to provide ext2/3/4 filesystem access from .Net application.
+The main goal of the SharpExt4 project is to provide ext2/3/4 filesystem access from Windows .Net application.
 
-For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a .Net programmer, it is hardly to find a .Net library, which can provide full access to ext2/3/4 Linux filesystem.
+For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hardly to find a .Net library, which can provide full access to ext2/3/4 Linux filesystem.
 
 These are the findings so far:
 1. [DiscUtils](https://github.com/DiscUtils/DiscUtils), is a .NET library to read and write ISO files and Virtual Machine disk files (VHD, VDI, XVA, VMDK, etc). DiscUtils also provides limited access to ext2/3/4 filesystem.
@@ -31,7 +30,7 @@ Here's a few simple examples.
 #### How to read a file from ext4 disk
 ```
   ...
-  //Open Ext4 disk image
+  //Open a ext4 disk image
   var ext4 = ExtDisk.Open(@".\org.img");
   var fs = ExtFileSystem.Open(ext4.Parititions[0]);
   //Open a file for read
