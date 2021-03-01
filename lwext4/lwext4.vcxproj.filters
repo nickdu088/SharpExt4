@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_balloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_bcache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_block_group.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_blockdev.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_dir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_dir_idx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_errno.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_extent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_fs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_ialloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_inode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_journal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_mbr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_mkfs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_oflags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_super.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_trans.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ext4_xattr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\getopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\unistd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\ext4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_balloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_bcache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_bitmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_block_group.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_blockdev.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_debug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_dir.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_dir_idx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_extent.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_fs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_hash.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_ialloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_inode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_journal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_mbr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_mkfs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_super.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_trans.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ext4_xattr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
