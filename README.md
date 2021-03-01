@@ -2,7 +2,6 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=C2RXG8SGHT366)
 
 ## About
-=====
 
 The main goal of the SharpExt4 project is to provide ext2/3/4 filesystem access from .Net application.
 
