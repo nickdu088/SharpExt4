@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2021 Nick Du (nick@nickdu.com)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ * - The name of the author may not be used to endorse or promote products
+ *   derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <cstring>
 #include "ExtFileSystem.h"
 #include "../lwext4/include/ext4.h"
@@ -38,34 +66,38 @@ uint64_t SharpExt4::ExtFileSystem::GetFileLength(String^ path)
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
     ext4_file* f = nullptr;
-    ext4_fopen(f, input_name, "r");
-    auto size = ext4_fsize(f);
-    ext4_fclose(f);
-    return size;
+    auto r = ext4_fopen(f, input_name, "r");
+    if (r == EOK)
+    {
+        auto size = ext4_fsize(f);
+        ext4_fclose(f);
+        return size;
+    }
+
+    throw gcnew IOException("Could not open file '" + path + "'.");
 }
 
 
-SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ volume)
+SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ partition)
 {
     auto fs = gcnew ExtFileSystem();
 
     struct ext4_bcache* bc = nullptr;
-    fs->bd->part_offset = volume->Offset;
-    fs->bd->part_size = volume->Size;
+    fs->bd->part_offset = partition->Offset;
+    fs->bd->part_size = partition->Size;
 
     auto r = ext4_device_register(fs->bd, bc ? bc : 0, "ext4_fs");
-    if (r != EOK) {
-        printf("ext4_device_register: rc = %d\n", r);
-        return nullptr;
+    if (r == EOK)
+    {
+        auto input_name = (char*)Marshal::StringToHGlobalAnsi(fs->mountPoint).ToPointer();
+        r = ext4_mount("ext4_fs", input_name, false);
+        if (r == EOK)
+        {
+            return fs;
+        }
     }
 
-    auto input_name = (char*)Marshal::StringToHGlobalAnsi(fs->mountPoint).ToPointer();
-    r = ext4_mount("ext4_fs", input_name, false);
-    if (r != EOK) {
-        printf("ext4_mount: rc = %d\n", r);
-        return nullptr;
-    }
-    return fs;
+    throw gcnew IOException("Could not mount partition.");
 }
 
 String^ SharpExt4::ExtFileSystem::ToString()
@@ -112,32 +144,6 @@ String^ SharpExt4::CombinePaths(String^ a, String^ b)
     }
 }
 
-String^ SharpExt4::ExtFileSystem::GetFileFromPath(String^ path)
-{
-    auto trimmed = path->Trim('/');
-
-    int index = trimmed->LastIndexOf('/');
-    if (index < 0)
-    {
-        return trimmed; // No directory, just a file name
-    }
-
-    return trimmed->Substring(index + 1);
-}
-
-String^ SharpExt4::ExtFileSystem::GetDirectoryFromPath(String^ path)
-{
-    auto trimmed = path->TrimEnd('/');
-
-    int index = trimmed->LastIndexOf('/');
-    if (index < 0)
-    {
-        return String::Empty; // No directory, just a file name
-    }
-
-    return trimmed->Substring(0, index);
-}
-
 List<SharpExt4::ExtDirEntry^>^ SharpExt4::ExtFileSystem::GetDirectory(String^ path)
 {
     auto result = gcnew List<ExtDirEntry^>();
@@ -153,7 +159,6 @@ List<SharpExt4::ExtDirEntry^>^ SharpExt4::ExtFileSystem::GetDirectory(String^ pa
     while (de) {
         memcpy(sss, de->name, de->name_length);
         sss[de->name_length] = 0;
-        //printf("  %s%s\n", entry_to_str(de->inode_type), sss);
         result->Add(gcnew ExtDirEntry(gcnew String(sss), de->entry_length, EntryType(de->inode_type)));
         de = ext4_dir_entry_next(&d);
     }
@@ -197,7 +202,11 @@ void SharpExt4::ExtFileSystem::CreateDirectory(String^ path)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_dir_mk(input_name);
+    auto r = ext4_dir_mk(input_name);
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not create directory '" + path + "'.");
+    }
 }
 
 void SharpExt4::ExtFileSystem::CopyFile(String^ sourceFile, String^ destinationFile, bool overwrite)
@@ -209,7 +218,11 @@ void SharpExt4::ExtFileSystem::DeleteDirectory(String^ path)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_dir_rm(input_name);
+    auto r = ext4_dir_rm(input_name);
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not delete directory '" + path + "'.");
+    }
 }
 
 
@@ -217,21 +230,24 @@ void SharpExt4::ExtFileSystem::DeleteFile(String^ path)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_fremove(input_name);
+    auto r = ext4_fremove(input_name);
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not delete file '" + path + "'.");
+    }
 }
 
 bool SharpExt4::ExtFileSystem::DirectoryExists(String^ path)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_dir* d = nullptr;
-    ext4_dir_open(d, input_name);
-    if (d == nullptr)
+    ext4_dir d = { 0 };
+    if (ext4_dir_open(&d, input_name) == EOK)
     {
-        return false;
+        ext4_dir_close(&d);
+        return true;
     }
-    ext4_dir_close(d);
-    return true;
+    return false;
 }
 
 bool SharpExt4::ExtFileSystem::FileExists(String^ path)
@@ -295,39 +311,48 @@ void SharpExt4::ExtFileSystem::SetAttributes(String^ path, FileAttributes newVal
 DateTime^ SharpExt4::ExtFileSystem::GetCreationTime(String^ path)
 {
     throw gcnew System::NotImplementedException();
-    // TODO: insert return statement here
 }
 
 void SharpExt4::ExtFileSystem::SetCreationTime(String^ path, DateTime^ newTime)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer(); 
-    ext4_file_set_ctime(input_name, newTime->ToFileTime());
+    auto r = ext4_file_set_ctime(input_name, newTime->ToFileTime());
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not set creation time.");
+    }
 }
 
 DateTime^ SharpExt4::ExtFileSystem::GetLastAccessTime(String^ path)
 {
     throw gcnew System::NotImplementedException();
-    // TODO: insert return statement here
 }
 
 void SharpExt4::ExtFileSystem::SetLastAccessTime(String^ path, DateTime^ newTime)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_file_set_atime(input_name, newTime->ToFileTime());
+    auto r = ext4_file_set_atime(input_name, newTime->ToFileTime());
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not set last access time.");
+    }
 }
 
 DateTime^ SharpExt4::ExtFileSystem::GetLastWriteTime(String^ path)
 {
     throw gcnew System::NotImplementedException();
-    // TODO: insert return statement here
 }
 
 void SharpExt4::ExtFileSystem::SetLastWriteTime(String^ path, DateTime^ newTime)
 {
     auto newPath = CombinePaths(mountPoint, path);
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
-    ext4_file_set_mtime(input_name, newTime->ToFileTime());
+    auto r = ext4_file_set_mtime(input_name, newTime->ToFileTime());
+    if (r != EOK)
+    {
+        throw gcnew IOException("Could not set last write time.");
+    }
 }
 

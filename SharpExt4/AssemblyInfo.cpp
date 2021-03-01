@@ -9,9 +9,9 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyTitleAttribute(L"SharpExt4")];
 [assembly:AssemblyDescriptionAttribute(L"")];
 [assembly:AssemblyConfigurationAttribute(L"")];
-[assembly:AssemblyCompanyAttribute(L"HP Inc.")];
+[assembly:AssemblyCompanyAttribute(L"Nick Du.")];
 [assembly:AssemblyProductAttribute(L"SharpExt4")];
-[assembly:AssemblyCopyrightAttribute(L"Copyright (c) HP Inc. 2021")];
+[assembly:AssemblyCopyrightAttribute(L"Copyright (c) Nick Du. 2021")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 

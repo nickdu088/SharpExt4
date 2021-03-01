@@ -3,9 +3,9 @@
 
 ## About
 
-The main goal of the SharpExt4 project is to provide ext2/3/4 filesystem access from Windows .Net application.
+The main purpose of this SharpExt4 project is to provide ext2/3/4 filesystem access from Windows .Net application.
 
-For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hardly to find a .Net library, which can provide full access to ext2/3/4 Linux filesystem.
+For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hard to find a .Net library, which can provide full access to ext2/3/4 Linux filesystem.
 
 These are the findings so far:
 1. [DiscUtils](https://github.com/DiscUtils/DiscUtils), is a .NET library to read and write ISO files and Virtual Machine disk files (VHD, VDI, XVA, VMDK, etc). DiscUtils also provides limited access to ext2/3/4 filesystem.
@@ -19,10 +19,10 @@ These are the findings so far:
 The lwext4 is a portable C project for microcontrollers and the library has some cool and unique features. Lwext4 is an excellent choice for SD/MMC card, USB flash drive or any other wear leveled memory types. In Windows, the author recommended to use [MSYS-2](https://sourceforge.net/projects/msys2/)
 
 I port the lwext4 backbone over to MSVC compiler (Visual Studio 2019), and create the lwext4 as a static lib.
-SharpExt4 is a clr wrapper of lwext4 to provide .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
+SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
 
 ## Compile
-#### Visual Studio 2019 C/C++
+#### Visual Studio 2019 C/C++ (It can be simply modified to be compiled in Visual Studio 2013)
 #### .Net Framework 4.5
 
 ## How to use the Library
@@ -30,9 +30,10 @@ Here's a few simple examples.
 #### How to read a file from ext4 disk
 ```
   ...
-  //Open a ext4 disk image
-  var ext4 = ExtDisk.Open(@".\org.img");
-  var fs = ExtFileSystem.Open(ext4.Parititions[0]);
+  //Open a Linux ext4 disk image
+  var disk = ExtDisk.Open(@".\org.img");
+  //Get the file system
+  var fs = ExtFileSystem.Open(disk.Parititions[0]);
   //Open a file for read
   var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
   //Check the file length

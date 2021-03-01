@@ -1,5 +1,32 @@
-#include "pch.h"
+/*
+ * Copyright (c) 2021 Nick Du (nick@nickdu.com)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ * - The name of the author may not be used to endorse or promote products
+ *   derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
+#include "pch.h"
 #include "ExtDisk.h"
 #include "io_raw.h"
 
@@ -13,15 +40,61 @@ SharpExt4::ExtDisk::ExtDisk(String^ diskPath)
 	bd = ext4_io_raw_dev_get();
 }
 
-SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(String^ path)
+SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(String^ imagePath)
 {
-	if (File::Exists(path))
+	if (File::Exists(imagePath))
 	{
-		auto disk = gcnew ExtDisk(path);
-
+		auto disk = gcnew ExtDisk(imagePath);
 		disk->bdevs = new ext4_mbr_bdevs();
 
 		auto r = ext4_mbr_scan(disk->bd, disk->bdevs);
+		if (r == EOK)
+		{
+			disk->capacity = disk->bd->part_offset;
+			disk->geometry = gcnew SharpExt4::Geometry(disk->bd->part_size, disk->bd->bdif->ph_tcnt, disk->bd->bdif->ph_scnt, disk->bd->bdif->ph_bsize);
+
+			disk->partitions = gcnew List<Partition^>();
+
+			for (auto par : disk->bdevs->partitions)
+			{
+				Partition^ partition = gcnew Partition();
+				partition->Offset = par.part_offset;
+				partition->Size = par.part_size;
+				disk->partitions->Add(partition);
+			}
+			return disk;
+		}
+		throw gcnew IOException("Could not read disk MBR.");
+	}
+	throw gcnew FileNotFoundException("Could not find file '" + imagePath +"'.");
+}
+
+array<Byte>^ SharpExt4::ExtDisk::GetMasterBootRecord()
+{
+	auto r = ext4_mbr_scan(bd, bdevs);
+	if (r == EOK) 
+	{
+		array<Byte>^ mbr = gcnew array<Byte>(512);
+		Marshal::Copy((IntPtr)bd->bdif->ph_bbuf, mbr, 0, 512);
+		return mbr;
+	}
+	throw gcnew IOException("Could not read disk MBR.");
+}
+
+SharpExt4::ExtDisk::~ExtDisk()
+{
+	ext4_block_fini(bd);
+	delete bdevs;
+}
+
+SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(int DiskNumber)
+{
+	auto disk = gcnew ExtDisk(String::Format("PhysicalDrive{0}", DiskNumber));
+	disk->bdevs = new ext4_mbr_bdevs();
+	
+	auto r = ext4_mbr_scan(disk->bd, disk->bdevs);
+	if (r == EOK)
+	{
 		disk->capacity = disk->bd->part_offset;
 		disk->geometry = gcnew SharpExt4::Geometry(disk->bd->part_size, disk->bd->bdif->ph_tcnt, disk->bd->bdif->ph_scnt, disk->bd->bdif->ph_bsize);
 
@@ -36,45 +109,7 @@ SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(String^ path)
 		}
 		return disk;
 	}
-	return nullptr;
-}
-
-array<Byte>^ SharpExt4::ExtDisk::GetMasterBootRecord()
-{
-	auto r = ext4_mbr_scan(bd, bdevs);
-	if (r != EOK) {
-		return nullptr;
-	}
-	array<Byte>^ mbr = gcnew array<Byte>(512);
-	Marshal::Copy((IntPtr)bd->bdif->ph_bbuf, mbr, 0, 512);
-	return mbr;
-}
-
-SharpExt4::ExtDisk::~ExtDisk()
-{
-	bd->bdif->close(bd);
-}
-
-SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(int DiskNumber)
-{
-	auto disk = gcnew ExtDisk(String::Format("PhysicalDrive{0}", DiskNumber));
-	disk->bdevs = new ext4_mbr_bdevs();
-	
-	auto r = ext4_mbr_scan(disk->bd, disk->bdevs);
-	disk->capacity = disk->bd->part_offset;
-	disk->geometry = gcnew SharpExt4::Geometry(disk->bd->part_size, disk->bd->bdif->ph_tcnt, disk->bd->bdif->ph_scnt, disk->bd->bdif->ph_bsize);
-
-	disk->partitions = gcnew List<Partition^>();
-
-	for (auto par : disk->bdevs->partitions)
-	{
-		Partition^ partition = gcnew Partition();
-		partition->Offset = par.part_offset;
-		partition->Size = par.part_size;
-		disk->partitions->Add(partition);
-	}
-	return disk;
-
+	throw gcnew IOException("Could not read disk MBR.");
 }
 
 uint64_t SharpExt4::ExtDisk::Capacity::get()
