@@ -46,6 +46,19 @@ Here's a few simple examples.
   ...
 ```
 
+#### How to list all files in a folder from from ext4 disk
+```
+  //Open a Linux ext4 disk image
+  var disk = ExtDisk.Open(@".\ext4.img");
+  //Get the file system
+  var fs = ExtFileSystem.Open(disk.Parititions[0]);
+  //List all files in /etc folder
+  foreach(var file in fs.GetFiles("/etc", "*", SearchOption.AllDirectories))
+  {
+    Console.WriteLine(file);
+  }
+```
+
 ## Credits
 =====
 

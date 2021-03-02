@@ -184,7 +184,7 @@ Regex^ SharpExt4::ConvertWildcardsToRegEx(String^ pattern)
     }
 
     //String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\?", "[^.]") + "$";
-    String^ query = /*"^" + */Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\.", ".*")/* + "$"*/;
+    String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
     return gcnew Regex(query, RegexOptions::IgnoreCase | RegexOptions::CultureInvariant);
 }
 
@@ -355,7 +355,7 @@ SharpExt4::ExtFileStream^ SharpExt4::ExtFileSystem::OpenFile(String^ path, FileM
 
 FileAttributes SharpExt4::ExtFileSystem::GetAttributes(String^ path)
 {
-    return FileAttributes();
+    throw gcnew System::NotImplementedException(); return FileAttributes();
 }
 
 void SharpExt4::ExtFileSystem::SetAttributes(String^ path, FileAttributes newValue)
