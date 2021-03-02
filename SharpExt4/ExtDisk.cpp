@@ -32,6 +32,10 @@
 
 using namespace System::IO;
 
+/// <summary>
+/// Constructor for ExtDisk
+/// </summary>
+/// <param name="diskPath">Linux disk path</param>
 SharpExt4::ExtDisk::ExtDisk(String^ diskPath)
 {
 	diskPath = diskPath;
@@ -40,6 +44,11 @@ SharpExt4::ExtDisk::ExtDisk(String^ diskPath)
 	bd = ext4_io_raw_dev_get();
 }
 
+/// <summary>
+/// To provide Linux disk image file access
+/// </summary>
+/// <param name="imagePath">Linux disk image file name</param>
+/// <returns></returns>
 SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(String^ imagePath)
 {
 	if (File::Exists(imagePath))
@@ -69,6 +78,10 @@ SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(String^ imagePath)
 	throw gcnew FileNotFoundException("Could not find file '" + imagePath +"'.");
 }
 
+/// <summary>
+/// Get Linux disk MBR
+/// </summary>
+/// <returns>MBR sector</returns>
 array<Byte>^ SharpExt4::ExtDisk::GetMasterBootRecord()
 {
 	auto r = ext4_mbr_scan(bd, bdevs);
@@ -81,12 +94,20 @@ array<Byte>^ SharpExt4::ExtDisk::GetMasterBootRecord()
 	throw gcnew IOException("Could not read disk MBR.");
 }
 
+/// <summary>
+/// Destructor of ExtDisk
+/// </summary>
 SharpExt4::ExtDisk::~ExtDisk()
 {
 	ext4_block_fini(bd);
 	delete bdevs;
 }
 
+/// <summary>
+/// To provide physical Linux disk access
+/// </summary>
+/// <param name="DiskNumber">Physical Disk Number</param>
+/// <returns>ExtDisk</returns>
 SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(int DiskNumber)
 {
 	auto disk = gcnew ExtDisk(String::Format("PhysicalDrive{0}", DiskNumber));
@@ -112,16 +133,25 @@ SharpExt4::ExtDisk^ SharpExt4::ExtDisk::Open(int DiskNumber)
 	throw gcnew IOException("Could not read disk MBR.");
 }
 
+/// <summary>
+/// Linux disk capacity
+/// </summary>
 uint64_t SharpExt4::ExtDisk::Capacity::get()
 {
 	return capacity;
 }
 
+/// <summary>
+/// Linux disk geometry
+/// </summary>
 SharpExt4::Geometry^ SharpExt4::ExtDisk::Geometry::get()
 {
 	return geometry;
 }
 
+/// <summary>
+/// Linux disk partitions
+/// </summary>
 IList<SharpExt4::Partition^>^ SharpExt4::ExtDisk::Parititions::get()
 {
 	return partitions;

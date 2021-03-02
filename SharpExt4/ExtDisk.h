@@ -1,18 +1,3 @@
-#pragma once
-
-#include <tchar.h>
-#include <stdint.h>
-#include <Windows.h>
-#include "Geometry.h"
-#include "../lwext4/include/ext4.h"
-#include "../lwext4/include/ext4_blockdev.h"
-#include "../lwext4/include/ext4_mbr.h"
-#include "Partition.h"
-
-using namespace System;
-using namespace System::Collections::Generic;
-using namespace System::Runtime::InteropServices;
-
 /*
  * Copyright (c) 2021 Nick Du (nick@nickdu.com)
  * All rights reserved.
@@ -40,6 +25,20 @@ using namespace System::Runtime::InteropServices;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <tchar.h>
+#include <stdint.h>
+#include <Windows.h>
+#include "Geometry.h"
+#include "../lwext4/include/ext4.h"
+#include "../lwext4/include/ext4_blockdev.h"
+#include "../lwext4/include/ext4_mbr.h"
+#include "Partition.h"
+
+using namespace System;
+using namespace System::Collections::Generic;
+using namespace System::Runtime::InteropServices;
 
 namespace SharpExt4 {
 	public ref class ExtDisk sealed : IDisposable
@@ -55,24 +54,48 @@ namespace SharpExt4 {
 		IList<Partition^>^ partitions;
 
 	public:
+		/// <summary>
+		/// To provide physical Linux disk access
+		/// </summary>
+		/// <param name="DiskNumber">Physical Disk Number</param>
+		/// <returns>ExtDisk</returns>
 		static ExtDisk^ Open(int DiskNumber);
+
+		/// <summary>
+		/// To provide Linux disk image file access
+		/// </summary>
+		/// <param name="imagePath">Linux disk image file name</param>
+		/// <returns></returns>
 		static ExtDisk^ Open(String^ imagePath);
 
+		/// <summary>
+		/// Linux disk capacity
+		/// </summary>
 		property uint64_t Capacity
 		{
 			uint64_t get();
 		}
 
+		/// <summary>
+		/// Linux disk geometry
+		/// </summary>
 		property Geometry^ Geometry
 		{
 			SharpExt4::Geometry^ get();
 		}
 
+		/// <summary>
+		/// Linux disk partitions
+		/// </summary>
 		property IList<Partition^>^ Parititions
 		{
 			IList<Partition^>^ get();
 		}
 
+		/// <summary>
+		/// Get Linux disk MBR
+		/// </summary>
+		/// <returns>MBR sector</returns>
 		array<Byte>^ GetMasterBootRecord();
 		~ExtDisk();
 	};
