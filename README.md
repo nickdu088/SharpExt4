@@ -69,17 +69,16 @@ Here's a few simple examples.
 	var disk = ExtDisk.Open(@".\org.img");
 	//Get the file system
 	var fs = ExtFileSystem.Open(disk.Parititions[0]);
-    //Open a file for write
-    var file = fs.OpenFile("/etc/test", FileMode.Create, FileAccess.Write);
-    var hello = "Hello World";
-    var buf = Encoding.ASCII.GetBytes(hello);
-    //Write to file
-    var count = file.Read(buf, 0, buf.Length);
-    file.Close();
+	//Open a file for write
+	var file = fs.OpenFile("/etc/test", FileMode.Create, FileAccess.Write);
+	var hello = "Hello World";
+	var buf = Encoding.ASCII.GetBytes(hello);
+	//Write to file
+	var count = file.Read(buf, 0, buf.Length);
+	file.Close();
 	...
 ```
 ## Credits
-=====
 
 The core library of SharpExt4 was taken from lwext4:
 * https://github.com/gkostka/lwext4
