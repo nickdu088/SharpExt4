@@ -41,6 +41,17 @@ namespace Sample
             var disk = ExtDisk.Open(@".\ext4.img");
             //Get the file system
             var fs = ExtFileSystem.Open(disk.Parititions[0]);
+            ReadFileContent(fs);
+            ListAllFiles(fs);
+            CreateFile(fs);
+            ChangeFileMode(fs);
+        }
+        static void ChangeFileMode(ExtFileSystem fs)
+        {
+            fs.ChangeMode("/etc/hosts",777);
+        }
+    static void ReadFileContent(ExtFileSystem fs)
+        {
             //Open a file for read
             var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
             //Check the file length
@@ -48,8 +59,27 @@ namespace Sample
             var buf = new byte[filelen];
             //Read the file content
             var count = file.Read(buf, 0, (int)filelen);
+            file.Close();
             var content = Encoding.Default.GetString(buf);
             Console.WriteLine(content);
+        }
+        static void ListAllFiles(ExtFileSystem fs)
+        {
+            //List all files in /etc folder
+            foreach (var file in fs.GetFiles("/etc", "*", SearchOption.AllDirectories))
+            {
+                Console.WriteLine(file);
+            }
+        }
+        static void CreateFile(ExtFileSystem fs)
+        {
+            //Open a file for write
+            var file = fs.OpenFile("/etc/test", FileMode.Create, FileAccess.Write);
+            var hello = "Hello World";
+            var buf = Encoding.ASCII.GetBytes(hello);
+            //Write to file
+            var count = file.Read(buf, 0, buf.Length);
+            file.Close();
         }
     }
 }

@@ -29,38 +29,55 @@ SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. T
 Here's a few simple examples.
 #### How to read a file from ext4 disk
 ```
-  ...
-  //Open a Linux ext4 disk image
-  var disk = ExtDisk.Open(@".\org.img");
-  //Get the file system
-  var fs = ExtFileSystem.Open(disk.Parititions[0]);
-  //Open a file for read
-  var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
-  //Check the file length
-  var filelen = file.Length;
-  var buf = new byte[filelen];
-  //Read the file content
-  var count = file.Read(buf, 0, (int)filelen);
-  var content = Encoding.Default.GetString(buf);
-  Console.WriteLine(content);
-  ...
+	...
+	//Open a Linux ext4 disk image
+	var disk = ExtDisk.Open(@".\org.img");
+	//Get the file system
+	var fs = ExtFileSystem.Open(disk.Parititions[0]);
+	//Open a file for read
+	var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
+	//Check the file length
+	var filelen = file.Length;
+	var buf = new byte[filelen];
+	//Read the file content
+	var count = file.Read(buf, 0, (int)filelen);
+	file.Close();
+	var content = Encoding.Default.GetString(buf);
+	Console.WriteLine(content);
+	...
 ```
 
 #### How to list all files in a folder from ext4 disk
 ```
-  ...
-  //Open a Linux ext4 disk image
-  var disk = ExtDisk.Open(@".\ext4.img");
-  //Get the file system
-  var fs = ExtFileSystem.Open(disk.Parititions[0]);
-  //List all files in /etc folder
-  foreach(var file in fs.GetFiles("/etc", "*", SearchOption.AllDirectories))
-  {
-    Console.WriteLine(file);
-  }
-  ...
+	...
+	//Open a Linux ext4 disk image
+	var disk = ExtDisk.Open(@".\ext4.img");
+	//Get the file system
+	var fs = ExtFileSystem.Open(disk.Parititions[0]);
+	//List all files in /etc folder
+	foreach(var file in fs.GetFiles("/etc", "*", SearchOption.AllDirectories))
+	{
+		Console.WriteLine(file);
+	}
+	...
 ```
 
+### How to create a file in ext4 disk
+```
+	...
+	//Open a Linux ext4 disk image
+	var disk = ExtDisk.Open(@".\org.img");
+	//Get the file system
+	var fs = ExtFileSystem.Open(disk.Parititions[0]);
+    //Open a file for write
+    var file = fs.OpenFile("/etc/test", FileMode.Create, FileAccess.Write);
+    var hello = "Hello World";
+    var buf = Encoding.ASCII.GetBytes(hello);
+    //Write to file
+    var count = file.Read(buf, 0, buf.Length);
+    file.Close();
+	...
+```
 ## Credits
 =====
 
