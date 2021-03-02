@@ -46,8 +46,9 @@ Here's a few simple examples.
   ...
 ```
 
-#### How to list all files in a folder from from ext4 disk
+#### How to list all files in a folder from ext4 disk
 ```
+  ...
   //Open a Linux ext4 disk image
   var disk = ExtDisk.Open(@".\ext4.img");
   //Get the file system
@@ -57,6 +58,7 @@ Here's a few simple examples.
   {
     Console.WriteLine(file);
   }
+  ...
 ```
 
 ## Credits
