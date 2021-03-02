@@ -38,7 +38,7 @@ namespace Sample
         static void Main(string[] args)
         {
             //Open a Linux ext4 disk image
-            var disk = ExtDisk.Open(@".\org.img");
+            var disk = ExtDisk.Open(@".\ext4.img");
             //Get the file system
             var fs = ExtFileSystem.Open(disk.Parititions[0]);
             //Open a file for read

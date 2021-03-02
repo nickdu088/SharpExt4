@@ -70,6 +70,11 @@ namespace SharpExt4 {
 		DateTime^ GetLastWriteTime(String^ path);
 		void SetLastWriteTime(String^ path, DateTime^ newTime);
 		uint64_t GetFileLength(String^ path);
+		void CreateSymLink(String^ target, String^ path);
+		void CreateHardLink(String^ path, String^ hardPath);
+		void ChangeMode(String^ path, uint32_t mode);
+		void ChangeOwner(String^ path, uint32_t uid, uint32_t gid);
+		void Truncate(String^ path, uint64_t size);
 
 		static ExtFileSystem^ Open(SharpExt4::Partition^ volume);
 
