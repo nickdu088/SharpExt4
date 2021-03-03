@@ -33,7 +33,7 @@
 using namespace System::Runtime::InteropServices;
 
 SharpExt4::ExtFileStream::ExtFileStream(SharpExt4::ExtFileSystem^ fs, String^ path, FileMode mode, FileAccess access)
-    :access(access), mode(mode), fs(fs)
+    :access(access), mode(mode), fs(fs), path(path)
 {
     if (!fs->CanWrite)
     {
@@ -47,9 +47,8 @@ SharpExt4::ExtFileStream::ExtFileStream(SharpExt4::ExtFileSystem^ fs, String^ pa
             throw gcnew NotSupportedException("Files cannot be opened for write");
         }
     }
-    auto newPath = CombinePaths(ExtFileSystem::MountPoint, path);
     file = new ext4_file();
-    auto input_name = (char*)Marshal::StringToHGlobalAnsi(newPath).ToPointer();
+    auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(ExtFileSystem::MountPoint, path)).ToPointer();
 
     if (!fs->FileExists(path))
     {
@@ -60,7 +59,7 @@ SharpExt4::ExtFileStream::ExtFileStream(SharpExt4::ExtFileSystem^ fs, String^ pa
         else
         {
             //create new file
-            ext4_fopen(file, input_name, "wb+");
+            ext4_fopen(file, internalPath, "wb+");
         }
     }
     else if (mode == FileMode::CreateNew)
@@ -68,7 +67,7 @@ SharpExt4::ExtFileStream::ExtFileStream(SharpExt4::ExtFileSystem^ fs, String^ pa
         throw gcnew IOException("File already exists");
     }
 
-    ext4_fopen(file, input_name, "rb+");
+    ext4_fopen(file, internalPath, "rb+");
 
     if (mode == FileMode::Create || mode == FileMode::Truncate)
     {
@@ -117,7 +116,10 @@ int SharpExt4::ExtFileStream::Read(array<uint8_t>^ array, int offset, int count)
     size_t rcnt = 0;
     pin_ptr<uint8_t> p = &array[offset];
     uint8_t* buf = p;
-    ext4_fread(file, buf, count, &rcnt);
+    if (ext4_fread(file, buf, count, &rcnt) != EOK)
+    {
+        throw gcnew IOException("Could not read file '" + path + "'.");
+    }
     return rcnt;
 }
 
@@ -126,12 +128,18 @@ void SharpExt4::ExtFileStream::Write(array<uint8_t>^ array, int offset, int coun
     size_t wcnt = 0;
     pin_ptr<uint8_t> p = &array[offset];
     uint8_t* buf =p;
-    ext4_fwrite(file, buf, count, &wcnt);
+    if (ext4_fwrite(file, buf, count, &wcnt) != EOK)
+    {
+        throw gcnew IOException("Could not write file '" + path + "'.");
+    }
 }
 
 void SharpExt4::ExtFileStream::Close()
 {
-    ext4_fclose(file);
+    if (ext4_fclose(file) != EOK)
+    {
+        throw gcnew IOException("Could not close file '" + path + "'.");
+    }
     delete file;
 }
 

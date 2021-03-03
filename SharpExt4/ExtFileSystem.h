@@ -50,17 +50,25 @@ namespace SharpExt4 {
 		List<ExtDirEntry^>^ GetDirectory(String^ path);
 
 	public:
-		void CreateDirectory(String^ path);
+#pragma region File related API
 		void CopyFile(String^ sourceFile, String^ destinationFile, bool overwrite);
-		void DeleteDirectory(String^ path);
+		void RenameFile(String^ sourceFileName, String^ destFileName);
 		void DeleteFile(String^ path);
-		bool DirectoryExists(String^ path);
 		bool FileExists(String^ path);
-		array<String^>^ GetDirectories(String^ path, String^ searchPattern, SearchOption searchOption); 
+		String^ ReadSymLink(String^ path);
 		array<String^>^ GetFiles(String^ path, String^ searchPattern, SearchOption searchOption);
-		void MoveDirectory(String^ sourceDirectoryName, String^ destinationDirectoryName);
-		void MoveFile(String^ sourceName, String^ destinationName, bool overwrite);
 		SharpExt4::ExtFileStream^ OpenFile(String^ path, FileMode mode, FileAccess access);
+#pragma endregion
+
+#pragma region Directory related API
+		void CreateDirectory(String^ path);
+		void DeleteDirectory(String^ path);
+		bool DirectoryExists(String^ path);
+		array<String^>^ GetDirectories(String^ path, String^ searchPattern, SearchOption searchOption); 
+		void MoveDirectory(String^ sourceDirectoryName, String^ destinationDirectoryName);
+#pragma endregion
+
+#pragma region Common API
 		FileAttributes GetAttributes(String^ path);
 		void SetAttributes(String^ path, FileAttributes newValue);
 		DateTime^ GetCreationTime(String^ path);
@@ -75,17 +83,17 @@ namespace SharpExt4 {
 		void ChangeMode(String^ path, uint32_t mode);
 		void ChangeOwner(String^ path, uint32_t uid, uint32_t gid);
 		void Truncate(String^ path, uint64_t size);
-
 		static ExtFileSystem^ Open(SharpExt4::Partition^ volume);
+#pragma endregion
 
 		property String^ Name { String^ get(); }
 		property String^ Description { String^ get(); }
 		property String^ VolumeLabel { String^ get(); }
-		
-		String^ ToString() override;
 		property bool CanWrite { bool get(); }
-		~ExtFileSystem();
 		static property String^ MountPoint { String^ get(); }
+
+		String^ ToString() override;
+		~ExtFileSystem();
 	};
 
 	Regex^ ConvertWildcardsToRegEx(String^ pattern);

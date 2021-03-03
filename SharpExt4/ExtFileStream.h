@@ -41,6 +41,7 @@ namespace SharpExt4 {
 		FileMode mode;
 		ExtFileSystem^ fs;
 		ext4_file* file = nullptr;
+		String^ path;
 
 	public:
 		ExtFileStream(ExtFileSystem^ fs, String^ path, FileMode mode, FileAccess access);
