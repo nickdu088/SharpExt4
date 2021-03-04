@@ -83,7 +83,7 @@ namespace SharpExt4 {
 		void ChangeMode(String^ path, uint32_t mode);
 		void ChangeOwner(String^ path, uint32_t uid, uint32_t gid);
 		void Truncate(String^ path, uint64_t size);
-		static ExtFileSystem^ Open(SharpExt4::Partition^ volume);
+		static ExtFileSystem^ Open(SharpExt4::Partition^ partition);
 #pragma endregion
 
 		property String^ Name { String^ get(); }
