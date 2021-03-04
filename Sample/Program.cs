@@ -79,7 +79,7 @@ namespace Sample
             var hello = "Hello World";
             var buf = Encoding.ASCII.GetBytes(hello);
             //Write to file
-            var count = file.Read(buf, 0, buf.Length);
+            file.Write(buf, 0, buf.Length);
             file.Close();
         }
     }
