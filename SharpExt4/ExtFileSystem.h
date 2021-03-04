@@ -44,6 +44,7 @@ namespace SharpExt4 {
 	{
 	private:
 		static String^ mountPoint = "/mnt/";
+		const char* devName = "ext4_fs";
 		static DateTime^ utcDateTime = gcnew DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
 		struct ext4_blockdev* bd;
 		ExtFileSystem();
@@ -70,8 +71,6 @@ namespace SharpExt4 {
 #pragma endregion
 
 #pragma region Common API
-		FileAttributes GetAttributes(String^ path);
-		void SetAttributes(String^ path, FileAttributes newValue);
 		DateTime^ GetCreationTime(String^ path);
 		void SetCreationTime(String^ path, DateTime^ newTime);
 		DateTime^ GetLastAccessTime(String^ path);
