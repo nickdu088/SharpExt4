@@ -44,6 +44,7 @@ namespace SharpExt4 {
 	{
 	private:
 		static String^ mountPoint = "/mnt/";
+		static DateTime^ utcDateTime = gcnew DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
 		struct ext4_blockdev* bd;
 		ExtFileSystem();
 		void DoSearch(List<String^>^ results, String^ path, Regex^ regex, bool subFolders, bool dirs, bool files);
@@ -80,8 +81,10 @@ namespace SharpExt4 {
 		uint64_t GetFileLength(String^ path);
 		void CreateSymLink(String^ target, String^ path);
 		void CreateHardLink(String^ path, String^ hardPath);
-		void ChangeMode(String^ path, uint32_t mode);
-		void ChangeOwner(String^ path, uint32_t uid, uint32_t gid);
+		uint32_t GetMode(String^ path);
+		void SetMode(String^ path, uint32_t mode);
+		Tuple<uint32_t, uint32_t>^ GetOwner(String^ path);
+		void SetOwner(String^ path, uint32_t uid, uint32_t gid);
 		void Truncate(String^ path, uint64_t size);
 		static ExtFileSystem^ Open(SharpExt4::Partition^ partition);
 #pragma endregion

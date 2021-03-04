@@ -48,7 +48,7 @@ namespace Sample
         }
         static void ChangeFileMode(ExtFileSystem fs)
         {
-            fs.ChangeMode("/etc/hosts",777);
+            fs.SetMode("/etc/hosts",777);
         }
     static void ReadFileContent(ExtFileSystem fs)
         {
