@@ -270,14 +270,23 @@ void ext4_inode_set_generation(struct ext4_inode *inode, uint32_t gen)
 	inode->generation = to_le32(gen);
 }
 
-uint16_t ext4_inode_get_extra_isize(struct ext4_inode *inode)
+uint16_t ext4_inode_get_extra_isize(struct ext4_sblock *sb,
+				    struct ext4_inode *inode)
 {
-	return to_le16(inode->extra_isize);
+	uint16_t inode_size = ext4_get16(sb, inode_size);
+	if (inode_size > EXT4_GOOD_OLD_INODE_SIZE)
+		return to_le16(inode->extra_isize);
+	else
+		return 0;
 }
 
-void ext4_inode_set_extra_isize(struct ext4_inode *inode, uint16_t size)
+void ext4_inode_set_extra_isize(struct ext4_sblock *sb,
+				struct ext4_inode *inode,
+				uint16_t size)
 {
-	inode->extra_isize = to_le16(size);
+	uint16_t inode_size = ext4_get16(sb, inode_size);
+	if (inode_size > EXT4_GOOD_OLD_INODE_SIZE)
+		inode->extra_isize = to_le16(size);
 }
 
 uint64_t ext4_inode_get_file_acl(struct ext4_inode *inode,
@@ -319,6 +328,26 @@ void ext4_inode_set_indirect_block(struct ext4_inode *inode, uint32_t idx,
 				   uint32_t block)
 {
 	inode->blocks[idx + EXT4_INODE_INDIRECT_BLOCK] = to_le32(block);
+}
+
+uint32_t ext4_inode_get_dev(struct ext4_inode *inode)
+{
+	uint32_t dev_0, dev_1;
+	dev_0 = ext4_inode_get_direct_block(inode, 0);
+	dev_1 = ext4_inode_get_direct_block(inode, 1);
+
+	if (dev_0)
+		return dev_0;
+	else
+		return dev_1;
+}
+
+void ext4_inode_set_dev(struct ext4_inode *inode, uint32_t dev)
+{
+	if (dev & ~0xFFFF)
+		ext4_inode_set_direct_block(inode, 1, dev);
+	else
+		ext4_inode_set_direct_block(inode, 0, dev);
 }
 
 uint32_t ext4_inode_type(struct ext4_sblock *sb, struct ext4_inode *inode)

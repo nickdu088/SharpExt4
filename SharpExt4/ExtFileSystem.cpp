@@ -101,7 +101,7 @@ void SharpExt4::ExtFileSystem::CreateHardLink(String^ path, String^ hardPath)
 void SharpExt4::ExtFileSystem::ChangeMode(String^ path, uint32_t mode)
 {
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_chmod(newPath, mode);
+    auto r = ext4_mode_set(newPath, mode);
     if (r != EOK)
     {
         throw gcnew IOException("Could not change mode '" + path + "'.");
@@ -111,7 +111,7 @@ void SharpExt4::ExtFileSystem::ChangeMode(String^ path, uint32_t mode)
 void SharpExt4::ExtFileSystem::ChangeOwner(String^ path, uint32_t uid, uint32_t gid)
 {
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_chown(newPath, uid, gid);
+    auto r = ext4_owner_set(newPath, uid, gid);
     if (r != EOK)
     {
         throw gcnew IOException("Could not change mode '" + path + "'.");
@@ -143,7 +143,7 @@ SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ p
     fs->bd->part_offset = partition->Offset;
     fs->bd->part_size = partition->Size;
 
-    auto r = ext4_device_register(fs->bd, bc ? bc : 0, "ext4_fs");
+    auto r = ext4_device_register(fs->bd, "ext4_fs");
     if (r == EOK)
     {
         auto input_name = (char*)Marshal::StringToHGlobalAnsi(fs->mountPoint).ToPointer();
@@ -438,7 +438,7 @@ void SharpExt4::ExtFileSystem::SetCreationTime(String^ path, DateTime^ newTime)
     }
 
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_file_set_ctime(newPath, newTime->ToFileTime());
+    auto r = ext4_ctime_set(newPath, newTime->ToFileTime());
     if (r != EOK)
     {
         throw gcnew IOException("Could not set creation time.");
@@ -458,7 +458,7 @@ void SharpExt4::ExtFileSystem::SetLastAccessTime(String^ path, DateTime^ newTime
     }
 
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_file_set_atime(newPath, newTime->ToFileTime());
+    auto r = ext4_atime_set(newPath, newTime->ToFileTime());
     if (r != EOK)
     {
         throw gcnew IOException("Could not set last access time.");
@@ -478,7 +478,7 @@ void SharpExt4::ExtFileSystem::SetLastWriteTime(String^ path, DateTime^ newTime)
     }
 
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_file_set_mtime(newPath, newTime->ToFileTime());
+    auto r = ext4_mtime_set(newPath, newTime->ToFileTime());
     if (r != EOK)
     {
         throw gcnew IOException("Could not set last write time.");

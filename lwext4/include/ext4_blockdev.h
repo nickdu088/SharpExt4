@@ -87,7 +87,7 @@ struct ext4_blockdev_iface {
 	uint64_t ph_bcnt;
 
 	/**@brief   Block size buffer: physical*/
-	uint8_t* ph_bbuf;
+	uint8_t *ph_bbuf;
 
 	/**@brief   Reference counter to block device interface*/
 	uint32_t ph_refctr;
@@ -98,6 +98,9 @@ struct ext4_blockdev_iface {
 	/**@brief   Physical write counter*/
 	uint32_t bwrite_ctr;
 
+	/**@brief   User data pointer*/
+	void* p_user;
+	
 	/**@brief   Track/Cylinder : physical*/
 	uint32_t ph_tcnt;
 
@@ -130,6 +133,8 @@ struct ext4_blockdev {
 
 	/**@brief   The filesystem this block device belongs to. */
 	struct ext4_fs *fs;
+
+	void *journal;
 };
 
 /**@brief   Static initialization of the block device.*/

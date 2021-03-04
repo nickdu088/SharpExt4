@@ -88,9 +88,14 @@ extern "C" {
 #define CONFIG_JOURNALING_ENABLE 1
 #endif
 
-/**@brief   Enable directory indexing comb sort*/
-#ifndef CONFIG_DIR_INDEX_COMB_SORT
-#define CONFIG_DIR_INDEX_COMB_SORT 1
+/**@brief  Enable/disable xattr*/
+#ifndef CONFIG_XATTR_ENABLE
+#define CONFIG_XATTR_ENABLE 1
+#endif
+
+/**@brief  Enable/disable extents*/
+#ifndef CONFIG_EXTENTS_ENABLE
+#define CONFIG_EXTENTS_ENABLE 1
 #endif
 
 /**@brief   Include error codes from ext4_errno or standard library.*/
@@ -123,9 +128,21 @@ extern "C" {
 #define CONFIG_BLOCK_DEV_CACHE_SIZE 8
 #endif
 
+
+/**@brief   Maximum block device name*/
+#ifndef CONFIG_EXT4_MAX_BLOCKDEV_NAME
+#define CONFIG_EXT4_MAX_BLOCKDEV_NAME 32
+#endif
+
+
 /**@brief   Maximum block device count*/
 #ifndef CONFIG_EXT4_BLOCKDEVS_COUNT
 #define CONFIG_EXT4_BLOCKDEVS_COUNT 2
+#endif
+
+/**@brief   Maximum mountpoint name*/
+#ifndef CONFIG_EXT4_MAX_MP_NAME
+#define CONFIG_EXT4_MAX_MP_NAME 32
 #endif
 
 /**@brief   Maximum mountpoint count*/
@@ -142,6 +159,18 @@ extern "C" {
  *        number of allocetions for single transaction*/
 #ifndef CONFIG_MAX_TRUNCATE_SIZE
 #define CONFIG_MAX_TRUNCATE_SIZE (16ul * 1024ul * 1024ul)
+#endif
+
+
+/**@brief Unaligned access switch on/off*/
+#ifndef CONFIG_UNALIGNED_ACCESS
+#define CONFIG_UNALIGNED_ACCESS 0
+#endif
+
+/**@brief Switches use of malloc/free functions family
+ *        from standard library to user provided*/
+#ifndef CONFIG_USE_USER_MALLOC
+#define CONFIG_USE_USER_MALLOC 0
 #endif
 
 #ifdef __cplusplus

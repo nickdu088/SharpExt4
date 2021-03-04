@@ -55,7 +55,7 @@
 
 struct fs_aux_info {
 	struct ext4_sblock *sb;
-	struct ext4_bgroup *bg_desc;
+	uint8_t *bg_desc_blk;
 	struct xattr_list_element *xattrs;
 	uint32_t first_data_block;
 	uint64_t len_blocks;
@@ -95,6 +95,7 @@ static int sb2info(struct ext4_sblock *sb, struct ext4_mkfs_info *info)
 	info->label = sb->volume_name;
 	info->len = (uint64_t)info->block_size * ext4_sb_get_blocks_cnt(sb);
 	info->dsc_size = to_le16(sb->desc_size);
+	memcpy(info->uuid, sb->uuid, UUID_SIZE);
 
 	return EOK;
 }
@@ -176,12 +177,12 @@ static int create_fs_aux_info(struct fs_aux_info *aux_info,
 		aux_info->len_blocks -= last_group_size;
 	}
 
-	aux_info->sb = calloc(1, EXT4_SUPERBLOCK_SIZE);
+	aux_info->sb = ext4_calloc(1, EXT4_SUPERBLOCK_SIZE);
 	if (!aux_info->sb)
 		return ENOMEM;
 
-	aux_info->bg_desc = calloc(aux_info->groups, sizeof(struct ext4_bgroup));
-	if (!aux_info->bg_desc)
+	aux_info->bg_desc_blk = ext4_calloc(1, info->block_size);
+	if (!aux_info->bg_desc_blk)
 		return ENOMEM;
 
 	aux_info->xattrs = NULL;
@@ -213,14 +214,14 @@ static int create_fs_aux_info(struct fs_aux_info *aux_info,
 static void release_fs_aux_info(struct fs_aux_info *aux_info)
 {
 	if (aux_info->sb)
-		free(aux_info->sb);
-	if (aux_info->bg_desc)
-		free(aux_info->bg_desc);
+		ext4_free(aux_info->sb);
+	if (aux_info->bg_desc_blk)
+		ext4_free(aux_info->bg_desc_blk);
 }
 
 
 /* Fill in the superblock memory buffer based on the filesystem parameters */
-static void fill_in_sb(struct fs_aux_info *aux_info, struct ext4_mkfs_info *info)
+static void fill_sb(struct fs_aux_info *aux_info, struct ext4_mkfs_info *info)
 {
 	struct ext4_sblock *sb = aux_info->sb;
 
@@ -260,7 +261,7 @@ static void fill_in_sb(struct fs_aux_info *aux_info, struct ext4_mkfs_info *info
 	sb->features_incompatible = to_le32(info->feat_incompat);
 	sb->features_read_only = to_le32(info->feat_ro_compat);
 
-	memset(sb->uuid, 0, sizeof(sb->uuid));
+	memcpy(sb->uuid, info->uuid, UUID_SIZE);
 
 	memset(sb->volume_name, 0, sizeof(sb->volume_name));
 	strncpy(sb->volume_name, info->label, sizeof(sb->volume_name));
@@ -273,6 +274,8 @@ static void fill_in_sb(struct fs_aux_info *aux_info, struct ext4_mkfs_info *info
 
 	if (info->feat_compat & EXT4_FCOM_HAS_JOURNAL)
 		sb->journal_inode_number = to_le32(EXT4_JOURNAL_INO);
+
+	sb->journal_backup_type = 1;
 	sb->journal_dev = to_le32(0);
 	sb->last_orphan = to_le32(0);
 	sb->hash_seed[0] = to_le32(0x11111111);
@@ -294,20 +297,68 @@ static void fill_in_sb(struct fs_aux_info *aux_info, struct ext4_mkfs_info *info
 	sb->flags = to_le32(EXT4_SUPERBLOCK_FLAGS_SIGNED_HASH);
 }
 
-static void fill_bgroups(struct fs_aux_info *aux_info,
+
+static int write_bgroup_block(struct ext4_blockdev *bd,
+			      struct fs_aux_info *aux_info,
+			      struct ext4_mkfs_info *info,
+			      uint32_t blk)
+{
+	int r = EOK;
+	uint32_t j;
+	struct ext4_block b;
+
+	uint32_t block_size = ext4_sb_get_block_size(aux_info->sb);
+
+	for (j = 0; j < aux_info->groups; j++) {
+		uint64_t bg_start_block = aux_info->first_data_block +
+					  j * info->blocks_per_group;
+		uint32_t blk_off = 0;
+
+		blk_off += aux_info->bg_desc_blocks;
+		if (has_superblock(info, j)) {
+			bg_start_block++;
+			blk_off += info->bg_desc_reserve_blocks;
+		}
+
+		uint64_t dsc_blk = bg_start_block + blk;
+
+		r = ext4_block_get_noread(bd, &b, dsc_blk);
+		if (r != EOK)
+			return r;
+
+		memcpy(b.data, aux_info->bg_desc_blk, block_size);
+
+		ext4_bcache_set_dirty(b.buf);
+		r = ext4_block_set(bd, &b);
+		if (r != EOK)
+			return r;
+	}
+
+	return r;
+}
+
+static int write_bgroups(struct ext4_blockdev *bd, struct fs_aux_info *aux_info,
 			 struct ext4_mkfs_info *info)
 {
-	uint32_t i;
+	int r = EOK;
 
+	struct ext4_block b;
+	struct ext4_bgroup *bg_desc;
+
+	uint32_t i;
 	uint32_t bg_free_blk = 0;
 	uint64_t sb_free_blk = 0;
+	uint32_t block_size = ext4_sb_get_block_size(aux_info->sb);
+	uint32_t dsc_size = ext4_sb_get_desc_size(aux_info->sb);
+	uint32_t dsc_per_block = block_size / dsc_size;
+	uint32_t k = 0;
 
 	for (i = 0; i < aux_info->groups; i++) {
-
 		uint64_t bg_start_block = aux_info->first_data_block +
 			aux_info->first_data_block + i * info->blocks_per_group;
 		uint32_t blk_off = 0;
 
+		bg_desc = (void *)(aux_info->bg_desc_blk + k * dsc_size);
 		bg_free_blk = info->blocks_per_group -
 				aux_info->inode_table_blocks;
 
@@ -324,86 +375,29 @@ static void fill_bgroups(struct fs_aux_info *aux_info,
 			bg_free_blk -= aux_info->bg_desc_blocks;
 		}
 
-		ext4_bg_set_block_bitmap(&aux_info->bg_desc[i], aux_info->sb,
-				bg_start_block + blk_off + 1);
+		ext4_bg_set_block_bitmap(bg_desc, aux_info->sb,
+					 bg_start_block + blk_off + 1);
 
-		ext4_bg_set_inode_bitmap(&aux_info->bg_desc[i], aux_info->sb,
-				bg_start_block + blk_off + 2);
+		ext4_bg_set_inode_bitmap(bg_desc, aux_info->sb,
+					 bg_start_block + blk_off + 2);
 
-		ext4_bg_set_inode_table_first_block(&aux_info->bg_desc[i],
-				aux_info->sb,
-				bg_start_block + blk_off + 3);
+		ext4_bg_set_inode_table_first_block(bg_desc,
+						aux_info->sb,
+						bg_start_block + blk_off + 3);
 
-		ext4_bg_set_free_blocks_count(&aux_info->bg_desc[i],
-				aux_info->sb, bg_free_blk);
+		ext4_bg_set_free_blocks_count(bg_desc, aux_info->sb,
+					      bg_free_blk);
 
-		ext4_bg_set_free_inodes_count(&aux_info->bg_desc[i],
-				aux_info->sb, aux_info->sb->inodes_per_group);
+		ext4_bg_set_free_inodes_count(bg_desc,
+				aux_info->sb, to_le32(aux_info->sb->inodes_per_group));
 
-		ext4_bg_set_used_dirs_count(&aux_info->bg_desc[i], aux_info->sb,
-					    0);
+		ext4_bg_set_used_dirs_count(bg_desc, aux_info->sb, 0);
 
-		ext4_bg_set_flag(&aux_info->bg_desc[i],
-				EXT4_BLOCK_GROUP_BLOCK_UNINIT |
-				EXT4_BLOCK_GROUP_INODE_UNINIT);
+		ext4_bg_set_flag(bg_desc,
+				 EXT4_BLOCK_GROUP_BLOCK_UNINIT |
+				 EXT4_BLOCK_GROUP_INODE_UNINIT);
 
 		sb_free_blk += bg_free_blk;
-	}
-
-	ext4_sb_set_free_blocks_cnt(aux_info->sb, sb_free_blk);
-}
-
-
-static int write_bgroups(struct ext4_blockdev *bd, struct fs_aux_info *aux_info,
-			 struct ext4_mkfs_info *info)
-{
-	int r;
-	uint32_t i;
-	struct ext4_block b;
-	for (i = 0; i < aux_info->groups; i++) {
-		uint64_t bg_start_block = aux_info->first_data_block +
-			+ i * info->blocks_per_group;
-		uint32_t blk_off = 0;
-
-		blk_off += aux_info->bg_desc_blocks;
-		if (has_superblock(info, i)) {
-			bg_start_block++;
-			blk_off += info->bg_desc_reserve_blocks;
-		}
-
-		uint32_t block_size = ext4_sb_get_block_size(aux_info->sb);
-		uint32_t dsc_pos = 0;
-		uint32_t dsc_id = 0;
-		uint32_t dsc_size = ext4_sb_get_desc_size(aux_info->sb);
-		uint32_t dsc_blk_cnt = aux_info->bg_desc_blocks;
-		uint64_t dsc_blk = bg_start_block;
-
-		while (dsc_blk_cnt--) {
-			r = ext4_block_get(bd, &b, dsc_blk++);
-			if (r != EOK)
-				return r;
-
-			dsc_pos = 0;
-			while (dsc_pos + dsc_size <= block_size) {
-				memcpy(b.data + dsc_pos,
-				       &aux_info->bg_desc[dsc_id],
-				       dsc_size);
-
-				dsc_pos += dsc_size;
-				dsc_id++;
-
-				if (dsc_id == aux_info->groups)
-					break;
-			}
-
-			ext4_bcache_set_dirty(b.buf);
-			r = ext4_block_set(bd, &b);
-			if (r != EOK)
-				return r;
-
-			if (dsc_id == aux_info->groups)
-				break;
-		}
 
 		r = ext4_block_get_noread(bd, &b, bg_start_block + blk_off + 1);
 		if (r != EOK)
@@ -421,9 +415,22 @@ static int write_bgroups(struct ext4_blockdev *bd, struct fs_aux_info *aux_info,
 		r = ext4_block_set(bd, &b);
 		if (r != EOK)
 			return r;
+
+		if (++k != dsc_per_block)
+			continue;
+
+		k = 0;
+		r = write_bgroup_block(bd, aux_info, info, i / dsc_per_block);
+		if (r != EOK)
+			return r;
+
 	}
 
+	r = write_bgroup_block(bd, aux_info, info, i / dsc_per_block);
+	if (r != EOK)
+		return r;
 
+	ext4_sb_set_free_blocks_cnt(aux_info->sb, sb_free_blk);
 	return r;
 }
 
@@ -463,7 +470,7 @@ int ext4_mkfs_read_info(struct ext4_blockdev *bd, struct ext4_mkfs_info *info)
 	if (r != EOK)
 		return r;
 
-	sb = malloc(EXT4_SUPERBLOCK_SIZE);
+	sb = ext4_malloc(EXT4_SUPERBLOCK_SIZE);
 	if (!sb)
 		goto Finish;
 
@@ -476,12 +483,12 @@ int ext4_mkfs_read_info(struct ext4_blockdev *bd, struct ext4_mkfs_info *info)
 
 Finish:
 	if (sb)
-		free(sb);
+		ext4_free(sb);
 	ext4_block_fini(bd);
 	return r;
 }
 
-static int mkfs_initial(struct ext4_blockdev *bd, struct ext4_mkfs_info *info)
+static int mkfs_init(struct ext4_blockdev *bd, struct ext4_mkfs_info *info)
 {
 	int r;
 	struct fs_aux_info aux_info;
@@ -491,9 +498,7 @@ static int mkfs_initial(struct ext4_blockdev *bd, struct ext4_mkfs_info *info)
 	if (r != EOK)
 		goto Finish;
 
-	fill_in_sb(&aux_info, info);
-	fill_bgroups(&aux_info, info);
-
+	fill_sb(&aux_info, info);
 
 	r = write_bgroups(bd, &aux_info, info);
 	if (r != EOK)
@@ -539,6 +544,8 @@ static int alloc_inodes(struct ext4_fs *fs)
 		case EXT4_GOOD_OLD_FIRST_INO:
 			filetype = EXT4_DE_DIR;
 			break;
+		default:
+			break;
 		}
 
 		r = ext4_fs_alloc_inode(fs, &inode_ref, filetype);
@@ -546,6 +553,14 @@ static int alloc_inodes(struct ext4_fs *fs)
 			return r;
 
 		ext4_inode_set_mode(&fs->sb, inode_ref.inode, 0);
+
+		switch (i) {
+		case EXT4_ROOT_INO:
+		case EXT4_JOURNAL_INO:
+			ext4_fs_inode_blocks_init(fs, &inode_ref);
+			break;
+		}
+
 		ext4_fs_put_inode_ref(&inode_ref);
 	}
 
@@ -619,6 +634,70 @@ static int create_dirs(struct ext4_fs *fs)
 	return r;
 }
 
+static int create_journal_inode(struct ext4_fs *fs,
+				struct ext4_mkfs_info *info)
+{
+	int ret;
+	struct ext4_inode_ref inode_ref;
+	uint64_t blocks_count;
+
+	if (!info->journal)
+		return EOK;
+
+	ret = ext4_fs_get_inode_ref(fs, EXT4_JOURNAL_INO, &inode_ref);
+	if (ret != EOK)
+		return ret;
+
+	struct ext4_inode *inode = inode_ref.inode;
+
+	ext4_inode_set_mode(&fs->sb, inode, EXT4_INODE_MODE_FILE | 0600);
+	ext4_inode_set_links_cnt(inode, 1);
+
+	blocks_count = ext4_inode_get_blocks_count(&fs->sb, inode);
+
+	while (blocks_count++ < info->journal_blocks)
+	{
+		ext4_fsblk_t fblock;
+		ext4_lblk_t iblock;
+		struct ext4_block blk;
+
+		ret = ext4_fs_append_inode_dblk(&inode_ref, &fblock, &iblock);
+		if (ret != EOK)
+			goto Finish;
+
+		if (iblock != 0)
+			continue;
+
+		ret = ext4_block_get(fs->bdev, &blk, fblock);
+		if (ret != EOK)
+			goto Finish;
+
+
+		struct jbd_sb * jbd_sb = (struct jbd_sb * )blk.data;
+		memset(jbd_sb, 0, sizeof(struct jbd_sb));
+
+		jbd_sb->header.magic = to_be32(JBD_MAGIC_NUMBER);
+		jbd_sb->header.blocktype = to_be32(JBD_SUPERBLOCK_V2);
+		jbd_sb->blocksize = to_be32(info->block_size);
+		jbd_sb->maxlen = to_be32(info->journal_blocks);
+		jbd_sb->nr_users = to_be32(1);
+		jbd_sb->first = to_be32(1);
+		jbd_sb->sequence = to_be32(1);
+
+		ext4_bcache_set_dirty(blk.buf);
+		ret = ext4_block_set(fs->bdev, &blk);
+		if (ret != EOK)
+			goto Finish;
+	}
+
+	memcpy(fs->sb.journal_blocks, inode->blocks, sizeof(inode->blocks));
+
+	Finish:
+	ext4_fs_put_inode_ref(&inode_ref);
+
+	return ret;
+}
+
 int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 	      struct ext4_mkfs_info *info, int fs_type)
 {
@@ -631,7 +710,7 @@ int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 	bd->fs = fs;
 
 	if (info->len == 0)
-		info->len = bd->bdif->ph_bcnt * bd->bdif->ph_bsize;
+		info->len = bd->part_size;
 
 	if (info->block_size == 0)
 		info->block_size = 4096; /*Set block size to default value*/
@@ -674,14 +753,19 @@ int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 		break;
 	}
 
-	/*TODO: handle this features*/
+	/*TODO: handle this features some day...*/
 	info->feat_incompat &= ~EXT4_FINCOM_META_BG;
 	info->feat_incompat &= ~EXT4_FINCOM_FLEX_BG;
-	info->feat_ro_compat &= ~EXT4_FRO_COM_METADATA_CSUM;
+	info->feat_incompat &= ~EXT4_FINCOM_64BIT;
 
-	/*TODO: handle journal feature & inode*/
-	if (info->journal == 0)
-		info->feat_compat |= 0;
+	info->feat_ro_compat &= ~EXT4_FRO_COM_METADATA_CSUM;
+	info->feat_ro_compat &= ~EXT4_FRO_COM_GDT_CSUM;
+	info->feat_ro_compat &= ~EXT4_FRO_COM_DIR_NLINK;
+	info->feat_ro_compat &= ~EXT4_FRO_COM_EXTRA_ISIZE;
+	info->feat_ro_compat &= ~EXT4_FRO_COM_HUGE_FILE;
+
+	if (info->journal)
+		info->feat_compat |= EXT4_FCOM_HAS_JOURNAL;
 
 	if (info->dsc_size == 0) {
 
@@ -721,8 +805,10 @@ int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 	ext4_dbg(DEBUG_MKFS, DBG_NONE "Label: %s\n", info->label);
 
 	struct ext4_bcache bc;
+
 	memset(&bc, 0, sizeof(struct ext4_bcache));
 	ext4_block_set_lb_size(bd, info->block_size);
+
 	r = ext4_bcache_init_dynamic(&bc, CONFIG_BLOCK_DEV_CACHE_SIZE,
 				      info->block_size);
 	if (r != EOK)
@@ -737,7 +823,7 @@ int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 	if (r != EOK)
 		goto cache_fini;
 
-	r = mkfs_initial(bd, info);
+	r = mkfs_init(bd, info);
 	if (r != EOK)
 		goto cache_fini;
 
@@ -754,6 +840,10 @@ int ext4_mkfs(struct ext4_fs *fs, struct ext4_blockdev *bd,
 		goto fs_fini;
 
 	r = create_dirs(fs);
+	if (r != EOK)
+		goto fs_fini;
+
+	r = create_journal_inode(fs, info);
 	if (r != EOK)
 		goto fs_fini;
 

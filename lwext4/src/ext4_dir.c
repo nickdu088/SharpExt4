@@ -314,9 +314,21 @@ void ext4_dir_write_entry(struct ext4_sblock *sb, struct ext4_dir_en *en,
 	case EXT4_INODE_MODE_SOFTLINK:
 		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_SYMLINK);
 		break;
+	case EXT4_INODE_MODE_CHARDEV:
+		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_CHRDEV);
+		break;
+	case EXT4_INODE_MODE_BLOCKDEV:
+		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_BLKDEV);
+		break;
+	case EXT4_INODE_MODE_FIFO:
+		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_FIFO);
+		break;
+	case EXT4_INODE_MODE_SOCKET:
+		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_SOCK);
+		break;
 	default:
-		/* FIXME: right now we only support 3 inode type. */
-		ext4_assert(0);
+		/* FIXME: unsupported filetype */
+		ext4_dir_en_set_inode_type(sb, en, EXT4_DE_UNKNOWN);
 	}
 
 	/* Set basic attributes */
@@ -339,7 +351,7 @@ int ext4_dir_add_entry(struct ext4_inode_ref *parent, const char *name,
 	/* Index adding (if allowed) */
 	if ((ext4_sb_feature_com(sb, EXT4_FCOM_DIR_INDEX)) &&
 	    (ext4_inode_has_flag(parent->inode, EXT4_INODE_FLAG_INDEX))) {
-		r = ext4_dir_dx_add_entry(parent, child, name);
+		r = ext4_dir_dx_add_entry(parent, child, name, name_len);
 
 		/* Check if index is not corrupted */
 		if (r != EXT4_ERR_BAD_DX_DIR) {

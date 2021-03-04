@@ -431,7 +431,7 @@ static int ext4_fs_init_inode_table(struct ext4_block_group_ref *bg_ref)
 	struct ext4_sblock *sb = &bg_ref->fs->sb;
 	struct ext4_bgroup *bg = bg_ref->block_group;
 
-	uint32_t inode_size = ext4_get32(sb, inode_size);
+	uint32_t inode_size = ext4_get16(sb, inode_size);
 	uint32_t block_size = ext4_sb_get_block_size(sb);
 	uint32_t inodes_per_block = block_size / inode_size;
 	uint32_t inodes_in_group = ext4_inodes_in_group_cnt(sb, bg_ref->index);
@@ -456,7 +456,7 @@ static int ext4_fs_init_inode_table(struct ext4_block_group_ref *bg_ref)
 		memset(b.data, 0, block_size);
 		ext4_trans_set_block_dirty(b.buf);
 
-		ext4_block_set(bg_ref->fs->bdev, &b);
+		rc = ext4_block_set(bg_ref->fs->bdev, &b);
 		if (rc != EOK)
 			return rc;
 	}
@@ -805,13 +805,18 @@ int ext4_fs_put_inode_ref(struct ext4_inode_ref *ref)
 void ext4_fs_inode_blocks_init(struct ext4_fs *fs,
 			       struct ext4_inode_ref *inode_ref)
 {
-	int i;
 	struct ext4_inode *inode = inode_ref->inode;
 
-	for (i = 0; i < EXT4_INODE_BLOCKS; i++)
-		inode->blocks[i] = 0;
+	/* Reset blocks array. For inode which is not directory or file, just
+	 * fill in blocks with 0 */
+	switch (ext4_inode_type(&fs->sb, inode_ref->inode)) {
+	case EXT4_INODE_MODE_FILE:
+	case EXT4_INODE_MODE_DIRECTORY:
+		break;
+	default:
+		return;
+	}
 
-	(void)fs;
 #if CONFIG_EXTENT_ENABLE
 	/* Initialize extents if needed */
 	if (ext4_sb_feature_incom(&fs->sb, EXT4_FINCOM_EXTENTS)) {
@@ -820,6 +825,8 @@ void ext4_fs_inode_blocks_init(struct ext4_fs *fs,
 		/* Initialize extent root header */
 		ext4_extent_tree_init(inode_ref);
 	}
+
+	inode_ref->dirty = true;
 #endif
 }
 
@@ -832,11 +839,17 @@ uint32_t ext4_fs_correspond_inode_mode(int filetype)
 		return EXT4_INODE_MODE_FILE;
 	case EXT4_DE_SYMLINK:
 		return EXT4_INODE_MODE_SOFTLINK;
-	default:
-		/* FIXME: right now we only support 3 file type. */
-		ext4_assert(0);
+	case EXT4_DE_CHRDEV:
+		return EXT4_INODE_MODE_CHARDEV;
+	case EXT4_DE_BLKDEV:
+		return EXT4_INODE_MODE_BLOCKDEV;
+	case EXT4_DE_FIFO:
+		return EXT4_INODE_MODE_FIFO;
+	case EXT4_DE_SOCK:
+		return EXT4_INODE_MODE_SOCKET;
 	}
-	return 0;
+	/* FIXME: unsupported filetype */
+	return EXT4_INODE_MODE_FILE;
 }
 
 int ext4_fs_alloc_inode(struct ext4_fs *fs, struct ext4_inode_ref *inode_ref,
@@ -864,6 +877,8 @@ int ext4_fs_alloc_inode(struct ext4_fs *fs, struct ext4_inode_ref *inode_ref,
 	/* Initialize i-node */
 	struct ext4_inode *inode = inode_ref->inode;
 
+	memset(inode, 0, inode_size);
+
 	uint32_t mode;
 	if (is_dir) {
 		/*
@@ -874,6 +889,14 @@ int ext4_fs_alloc_inode(struct ext4_fs *fs, struct ext4_inode_ref *inode_ref,
 
 		mode = 0777;
 		mode |= EXT4_INODE_MODE_DIRECTORY;
+	} else if (filetype == EXT4_DE_SYMLINK) {
+		/*
+		 * Default symbolic link permissions to be compatible with other systems
+		 * 0777 (octal) == rwxrwxrwx
+		 */
+
+		mode = 0777;
+		mode |= EXT4_INODE_MODE_SOFTLINK;
 	} else {
 		/*
 		 * Default file permissions to be compatible with other systems
@@ -897,21 +920,11 @@ int ext4_fs_alloc_inode(struct ext4_fs *fs, struct ext4_inode_ref *inode_ref,
 	ext4_inode_set_flags(inode, 0);
 	ext4_inode_set_generation(inode, 0);
 	if (inode_size > EXT4_GOOD_OLD_INODE_SIZE) {
-		uint16_t off = offsetof(struct ext4_inode, extra_isize);
-		uint16_t size = sizeof(struct ext4_inode) - off;
-		ext4_inode_set_extra_isize(inode, size);
+		uint16_t size = ext4_get16(&fs->sb, want_extra_isize);
+		ext4_inode_set_extra_isize(&fs->sb, inode, size);
 	}
 
-	/* Reset blocks array. For symbolic link inode, just
-	 * fill in blocks with 0 */
-	if (ext4_inode_is_type(&fs->sb, inode, EXT4_INODE_MODE_SOFTLINK)) {
-		for (int i = 0; i < EXT4_INODE_BLOCKS; i++)
-			inode->blocks[i] = 0;
-
-	} else {
-		ext4_fs_inode_blocks_init(fs, inode_ref);
-	}
-
+	memset(inode->blocks, 0, sizeof(inode->blocks));
 	inode_ref->dirty = true;
 
 	return EOK;
@@ -1167,6 +1180,7 @@ int ext4_fs_truncate_inode(struct ext4_inode_ref *inode_ref, uint64_t new_size)
 	struct ext4_sblock *sb = &inode_ref->fs->sb;
 	uint32_t i;
 	int r;
+	bool v;
 
 	/* Check flags, if i-node can be truncated */
 	if (!ext4_inode_can_truncate(sb, inode_ref->inode))
@@ -1181,7 +1195,7 @@ int ext4_fs_truncate_inode(struct ext4_inode_ref *inode_ref, uint64_t new_size)
 	if (old_size < new_size)
 		return EINVAL;
 
-	bool v;
+	/* For symbolic link which is small enough */
 	v = ext4_inode_is_type(sb, inode_ref->inode, EXT4_INODE_MODE_SOFTLINK);
 	if (v && old_size < sizeof(inode_ref->inode->blocks) &&
 	    !ext4_inode_get_blocks_count(sb, inode_ref->inode)) {
@@ -1191,6 +1205,17 @@ int ext4_fs_truncate_inode(struct ext4_inode_ref *inode_ref, uint64_t new_size)
 		ext4_inode_set_size(inode_ref->inode, new_size);
 		inode_ref->dirty = true;
 
+		return EOK;
+	}
+
+	i = ext4_inode_type(sb, inode_ref->inode);
+	if (i == EXT4_INODE_MODE_CHARDEV ||
+	    i == EXT4_INODE_MODE_BLOCKDEV ||
+	    i == EXT4_INODE_MODE_SOCKET) {
+		inode_ref->inode->blocks[0] = 0;
+		inode_ref->inode->blocks[1] = 0;
+
+		inode_ref->dirty = true;
 		return EOK;
 	}
 
@@ -1630,6 +1655,8 @@ int ext4_fs_append_inode_dblk(struct ext4_inode_ref *inode_ref,
 
 		rc = ext4_extent_get_blocks(inode_ref, *iblock, 1,
 						&current_fsblk, true, NULL);
+		if (rc != EOK)
+			return rc;
 
 		*fblock = current_fsblk;
 		ext4_assert(*fblock);

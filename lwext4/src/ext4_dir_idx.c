@@ -830,42 +830,6 @@ cleanup:
 	return rc;
 }
 
-#if CONFIG_DIR_INDEX_COMB_SORT
-#define SWAP_ENTRY(se1, se2)                                                   \
-	do {                                                                   \
-		struct ext4_dx_sort_entry tmp = se1;                           \
-		se1 = se2;                                                     \
-		se2 = tmp;                                                     \
-	\
-} while (0)
-
-static void comb_sort(struct ext4_dx_sort_entry *se, uint32_t count)
-{
-	struct ext4_dx_sort_entry *p, *q, *top = se + count - 1;
-	bool more;
-	/* Combsort */
-	while (count > 2) {
-		count = (count * 10) / 13;
-		if (count - 9 < 2)
-			count = 11;
-		for (p = top, q = p - count; q >= se; p--, q--)
-			if (p->hash < q->hash)
-				SWAP_ENTRY(*p, *q);
-	}
-	/* Bubblesort */
-	do {
-		more = 0;
-		q = top;
-		while (q-- > se) {
-			if (q[1].hash >= q[0].hash)
-				continue;
-			SWAP_ENTRY(*(q + 1), *q);
-			more = 1;
-		}
-	} while (more);
-}
-#else
-
 /**@brief  Compare function used to pass in quicksort implementation.
  *         It can compare two entries by hash value.
  * @param arg1  First entry
@@ -888,7 +852,6 @@ static int ext4_dir_dx_entry_comparator(const void *arg1, const void *arg2)
 	else
 		return 1;
 }
-#endif
 
 /**@brief  Insert new index entry to block.
  *         Note that space for new entry must be checked by caller.
@@ -939,7 +902,7 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 	uint32_t block_size = ext4_sb_get_block_size(&inode_ref->fs->sb);
 
 	/* Allocate buffer for directory entries */
-	uint8_t *entry_buffer = malloc(block_size);
+	uint8_t *entry_buffer = ext4_malloc(block_size);
 	if (entry_buffer == NULL)
 		return ENOMEM;
 
@@ -949,9 +912,9 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 	/* Allocate sort entry */
 	struct ext4_dx_sort_entry *sort;
 
-	sort = malloc(max_ecnt * sizeof(struct ext4_dx_sort_entry));
+	sort = ext4_malloc(max_ecnt * sizeof(struct ext4_dx_sort_entry));
 	if (sort == NULL) {
-		free(entry_buffer);
+		ext4_free(entry_buffer);
 		return ENOMEM;
 	}
 
@@ -972,8 +935,8 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 			rc = ext4_dir_dx_hash_string(&hinfo_tmp, len,
 						     (char *)de->name);
 			if (rc != EOK) {
-				free(sort);
-				free(entry_buffer);
+				ext4_free(sort);
+				ext4_free(entry_buffer);
 				return rc;
 			}
 
@@ -996,20 +959,16 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 		de = (void *)((uint8_t *)de + elen);
 	}
 
-/* Sort all entries */
-#if CONFIG_DIR_INDEX_COMB_SORT
-	comb_sort(sort, idx);
-#else
 	qsort(sort, idx, sizeof(struct ext4_dx_sort_entry),
 	      ext4_dir_dx_entry_comparator);
-#endif
+
 	/* Allocate new block for store the second part of entries */
 	ext4_fsblk_t new_fblock;
 	uint32_t new_iblock;
 	rc = ext4_fs_append_inode_dblk(inode_ref, &new_fblock, &new_iblock);
 	if (rc != EOK) {
-		free(sort);
-		free(entry_buffer);
+		ext4_free(sort);
+		ext4_free(entry_buffer);
 		return rc;
 	}
 
@@ -1018,8 +977,8 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 	rc = ext4_trans_block_get_noread(inode_ref->fs->bdev, &new_data_block_tmp,
 				   new_fblock);
 	if (rc != EOK) {
-		free(sort);
-		free(entry_buffer);
+		ext4_free(sort);
+		ext4_free(entry_buffer);
 		return rc;
 	}
 
@@ -1097,8 +1056,8 @@ static int ext4_dir_dx_split_data(struct ext4_inode_ref *inode_ref,
 	ext4_trans_set_block_dirty(old_data_block->buf);
 	ext4_trans_set_block_dirty(new_data_block_tmp.buf);
 
-	free(sort);
-	free(entry_buffer);
+	ext4_free(sort);
+	ext4_free(entry_buffer);
 
 	ext4_dir_dx_insert_entry(inode_ref, index_block, new_hash + continued,
 				new_iblock);
@@ -1271,7 +1230,7 @@ ext4_dir_dx_split_index(struct ext4_inode_ref *ino_ref,
 }
 
 int ext4_dir_dx_add_entry(struct ext4_inode_ref *parent,
-			  struct ext4_inode_ref *child, const char *name)
+			  struct ext4_inode_ref *child, const char *name, uint32_t name_len)
 {
 	int rc2 = EOK;
 	int r;
@@ -1298,7 +1257,6 @@ int ext4_dir_dx_add_entry(struct ext4_inode_ref *parent,
 	}
 
 	/* Initialize hinfo structure (mainly compute hash) */
-	uint32_t name_len = strlen(name);
 	struct ext4_hash_info hinfo;
 	r = ext4_dir_hinfo_init(&hinfo, &root_blk, &fs->sb, name_len, name);
 	if (r != EOK) {

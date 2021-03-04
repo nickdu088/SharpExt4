@@ -205,16 +205,21 @@ uint32_t ext4_inode_get_generation(struct ext4_inode *inode);
 void ext4_inode_set_generation(struct ext4_inode *inode, uint32_t gen);
 
 /**@brief Get extra I-node size field.
+ * @param sb         Superblock
  * @param inode      I-node
  * @return extra I-node size
  */
-uint16_t ext4_inode_get_extra_isize(struct ext4_inode *inode);
+uint16_t ext4_inode_get_extra_isize(struct ext4_sblock *sb,
+				    struct ext4_inode *inode);
 
 /**@brief Set extra I-node size field.
+ * @param sb         Superblock
  * @param inode      I-node
  * @param size       extra I-node size
  */
-void ext4_inode_set_extra_isize(struct ext4_inode *inode, uint16_t size);
+void ext4_inode_set_extra_isize(struct ext4_sblock *sb,
+				struct ext4_inode *inode,
+				uint16_t size);
 
 /**@brief Get address of block, where are extended attributes located.
  * @param inode I-node
@@ -261,6 +266,18 @@ uint32_t ext4_inode_get_indirect_block(struct ext4_inode *inode, uint32_t idx);
  */
 void ext4_inode_set_indirect_block(struct ext4_inode *inode, uint32_t idx,
 				   uint32_t block);
+
+/**@brief Get device number
+ * @param inode  I-node to get device number from
+ * @return Device number
+ */
+uint32_t ext4_inode_get_dev(struct ext4_inode *inode);
+
+/**@brief Set device number
+ * @param inode  I-node to set device number to
+ * @param dev    Device number
+ */
+void ext4_inode_set_dev(struct ext4_inode *inode, uint32_t dev);
 
 /**@brief return the type of i-node
  * @param sb    Superblock

@@ -41,6 +41,8 @@
 #include "ext4_debug.h"
 
 #include "ext4_blockdev.h"
+#include "ext4_fs.h"
+#include "ext4_journal.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -190,6 +192,8 @@ int ext4_block_cache_shake(struct ext4_blockdev *bdev)
 	if (bdev->bc->dont_shake)
 		return EOK;
 
+	bdev->bc->dont_shake = true;
+
 	while (!RB_EMPTY(&bdev->bc->lru_root) &&
 		ext4_bcache_is_full(bdev->bc)) {
 
@@ -204,6 +208,7 @@ int ext4_block_cache_shake(struct ext4_blockdev *bdev)
 
 		ext4_bcache_drop_buf(bdev->bc, buf);
 	}
+	bdev->bc->dont_shake = false;
 	return r;
 }
 
@@ -219,7 +224,7 @@ int ext4_block_get_noread(struct ext4_blockdev *bdev, struct ext4_block *b,
 		return EIO;
 
 	if (!(lba < bdev->lg_bcnt))
-		return ERANGE;
+		return ENXIO;
 
 	b->lb_id = lba;
 
@@ -347,14 +352,16 @@ int ext4_block_writebytes(struct ext4_blockdev *bdev, uint64_t off,
 
 	/*Aligned data*/
 	blen = len / bdev->bdif->ph_bsize;
-	r = ext4_bdif_bwrite(bdev, p, block_idx, blen);
-	if (r != EOK)
-		return r;
+	if (blen != 0) {
+		r = ext4_bdif_bwrite(bdev, p, block_idx, blen);
+		if (r != EOK)
+			return r;
 
-	p += bdev->bdif->ph_bsize * blen;
-	len -= bdev->bdif->ph_bsize * blen;
+		p += bdev->bdif->ph_bsize * blen;
+		len -= bdev->bdif->ph_bsize * blen;
 
-	block_idx += blen;
+		block_idx += blen;
+	}
 
 	/*Rest of the data*/
 	if (len) {
@@ -413,14 +420,16 @@ int ext4_block_readbytes(struct ext4_blockdev *bdev, uint64_t off, void *buf,
 	/*Aligned data*/
 	blen = len / bdev->bdif->ph_bsize;
 
-	r = ext4_bdif_bread(bdev, p, block_idx, blen);
-	if (r != EOK)
-		return r;
+	if (blen != 0) {
+		r = ext4_bdif_bread(bdev, p, block_idx, blen);
+		if (r != EOK)
+			return r;
 
-	p += bdev->bdif->ph_bsize * blen;
-	len -= bdev->bdif->ph_bsize * blen;
+		p += bdev->bdif->ph_bsize * blen;
+		len -= bdev->bdif->ph_bsize * blen;
 
-	block_idx += blen;
+		block_idx += blen;
+	}
 
 	/*Rest of the data*/
 	if (len) {
