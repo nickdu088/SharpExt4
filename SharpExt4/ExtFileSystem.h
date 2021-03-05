@@ -79,7 +79,7 @@ namespace SharpExt4 {
 		void SetLastWriteTime(String^ path, DateTime^ newTime);
 		uint64_t GetFileLength(String^ path);
 		void CreateSymLink(String^ target, String^ path);
-		void CreateHardLink(String^ path, String^ hardPath);
+		void CreateHardLink(String^ target, String^ path);
 		uint32_t GetMode(String^ path);
 		void SetMode(String^ path, uint32_t mode);
 		Tuple<uint32_t, uint32_t>^ GetOwner(String^ path);

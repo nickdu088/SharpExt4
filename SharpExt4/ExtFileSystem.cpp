@@ -87,11 +87,11 @@ void SharpExt4::ExtFileSystem::CreateSymLink(String^ target, String^ path)
     }
 }
 
-void SharpExt4::ExtFileSystem::CreateHardLink(String^ path, String^ hardPath)
+void SharpExt4::ExtFileSystem::CreateHardLink(String^ target, String^ path)
 {
+    auto newTarget = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, target)).ToPointer();
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto newHardPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, hardPath)).ToPointer();
-    auto r = ext4_flink(newPath, newHardPath);
+    auto r = ext4_flink(newTarget, newPath);
     if (r != EOK)
     {
         throw gcnew IOException("Could not create hard lik for '" + path + "'.");
