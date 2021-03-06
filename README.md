@@ -86,7 +86,7 @@ Here's a few simple examples.
 	var disk = ExtDisk.Open(1);
 	//Get the file system
 	var fs = ExtFileSystem.Open(disk.Parititions[0]);
-	//Open a file for write
+	//Check file exists
 	if(fs.FileExists("/etc/hosts"))
 	{
 		//0x1FF in HEX, 777 in OCT
