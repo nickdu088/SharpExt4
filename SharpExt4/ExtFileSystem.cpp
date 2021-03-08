@@ -76,6 +76,11 @@ uint64_t SharpExt4::ExtFileSystem::GetFileLength(String^ path)
     throw gcnew IOException("Could not open file '" + path + "'.");
 }
 
+/// <summary>
+/// Create a symbolic link in file system
+/// </summary>
+/// <param name="target">absolute path of target</param>
+/// <param name="path">link name</param>
 void SharpExt4::ExtFileSystem::CreateSymLink(String^ target, String^ path)
 {
     auto newTarget = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, target)).ToPointer();
@@ -87,6 +92,11 @@ void SharpExt4::ExtFileSystem::CreateSymLink(String^ target, String^ path)
     }
 }
 
+/// <summary>
+/// Create a hard link in file system
+/// </summary>
+/// <param name="target">absolute path of target</param>
+/// <param name="path">link name</param>
 void SharpExt4::ExtFileSystem::CreateHardLink(String^ target, String^ path)
 {
     auto newTarget = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, target)).ToPointer();
@@ -98,6 +108,10 @@ void SharpExt4::ExtFileSystem::CreateHardLink(String^ target, String^ path)
     }
 }
 
+/// <summary>
+/// Get the permissons of a file or directory
+/// </summary>
+/// <param name="path">the path to a file or directory</param>
 uint32_t SharpExt4::ExtFileSystem::GetMode(String^ path)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
@@ -110,6 +124,10 @@ uint32_t SharpExt4::ExtFileSystem::GetMode(String^ path)
     return mode;
 }
 
+/// <summary>
+/// Set the permissons of a file or directory
+/// </summary>
+/// <param name="path">the path to a file or directory</param>
 void SharpExt4::ExtFileSystem::SetMode(String^ path, uint32_t mode)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
@@ -120,6 +138,10 @@ void SharpExt4::ExtFileSystem::SetMode(String^ path, uint32_t mode)
     }
 }
 
+/// <summary>
+/// Get the user and/or group ownership of a file or directory
+/// </summary>
+/// <param name="path">the path to a file or directory</param>
 Tuple<uint32_t, uint32_t>^ SharpExt4::ExtFileSystem::GetOwner(String^ path)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
@@ -134,6 +156,10 @@ Tuple<uint32_t, uint32_t>^ SharpExt4::ExtFileSystem::GetOwner(String^ path)
     return gcnew Tuple<uint32_t, uint32_t>(uid, gid);
 }
 
+/// <summary>
+/// Set the user and/or group ownership of a file or directory
+/// </summary>
+/// <param name="path">the path to a file or directory</param>
 void SharpExt4::ExtFileSystem::SetOwner(String^ path, uint32_t uid, uint32_t gid)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
@@ -144,6 +170,10 @@ void SharpExt4::ExtFileSystem::SetOwner(String^ path, uint32_t uid, uint32_t gid
     }
 }
 
+/// <summary>
+/// Shrink or extend the size of given file to the specified size
+/// </summary>
+/// <param name="path">the path to a file</param>
 void SharpExt4::ExtFileSystem::Truncate(String^ path, uint64_t size)
 {
     if (FileExists(path))
@@ -160,7 +190,10 @@ void SharpExt4::ExtFileSystem::Truncate(String^ path, uint64_t size)
     throw gcnew FileNotFoundException("Could not find file '" + path + "'.");
 }
 
-
+/// <summary>
+/// Open a given Linux partition
+/// </summary>
+/// <param name="path">Partition to open</param>
 SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ partition)
 {
     auto fs = gcnew ExtFileSystem();

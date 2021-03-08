@@ -43,7 +43,7 @@ namespace SharpExt4 {
 	public ref class ExtFileSystem sealed
 	{
 	private:
-		static String^ mountPoint = "/mnt/";
+		static String^ mountPoint = "/";
 		const char* devName = "ext4_fs";
 		static DateTime^ utcDateTime = gcnew DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
 		struct ext4_blockdev* bd;
