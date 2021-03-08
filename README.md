@@ -3,9 +3,9 @@
 
 ## About
 
-The main purpose of this SharpExt4 project is to provide ext2/3/4 filesystem access from Windows .Net application.
+The main purpose of this SharpExt4 project is to provide full access to Linux ext2/3/4 filesystem from Windows .Net application.
 
-For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hard to find a .Net library, which can provide full access to ext2/3/4 Linux filesystem.
+For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hard to find a .Net library, which can provide full access to Linux ext2/3/4 filesystem.
 
 These are the findings so far:
 1. [DiscUtils](https://github.com/DiscUtils/DiscUtils), is a .NET library to read and write ISO files and Virtual Machine disk files (VHD, VDI, XVA, VMDK, etc). DiscUtils also provides limited access to ext2/3/4 filesystem.
@@ -27,12 +27,12 @@ SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. T
 
 ## How to use the Library
 Here's a few simple examples.
-#### How to read a file from ext4 disk
+#### How to read a file from ext4 disk image
 ```
 	...
 	//Open a Linux ext4 disk image
-	var disk = ExtDisk.Open(@".\org.img");
-	//Get the file system
+	var disk = ExtDisk.Open(@".\ext4.img");
+	//Get the Linux partition and open
 	var fs = ExtFileSystem.Open(disk.Parititions[0]);
 	//Open a file for read
 	var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
@@ -47,12 +47,12 @@ Here's a few simple examples.
 	...
 ```
 
-#### How to list all files in a folder from ext4 disk
+#### How to list all files in a folder from ext4 disk image
 ```
 	...
 	//Open a Linux ext4 disk image
 	var disk = ExtDisk.Open(@".\ext4.img");
-	//Get the file system
+	//Get the Linux partition, and open
 	var fs = ExtFileSystem.Open(disk.Parititions[0]);
 	//List all files in /etc folder
 	foreach(var file in fs.GetFiles("/etc", "*", SearchOption.AllDirectories))
@@ -62,7 +62,7 @@ Here's a few simple examples.
 	...
 ```
 
-### How to create a file in ext4 disk
+### How to create a file in ext4 disk image
 ```
 	...
 	//Open a Linux ext4 disk image
@@ -76,6 +76,22 @@ Here's a few simple examples.
 	//Write to file
 	var count = file.Read(buf, 0, buf.Length);
 	file.Close();
+	...
+```
+
+### How to change a file mode in ext4 disk
+```
+	...
+	//Open a Linux ext4 disk assume your SD card/USB is physical disk 1
+	var disk = ExtDisk.Open(1);
+	//Get the file system
+	var fs = ExtFileSystem.Open(disk.Parititions[0]);
+	//Check file exists
+	if(fs.FileExists("/etc/hosts"))
+	{
+		//0x1FF in HEX, 777 in OCT
+		fs.SetMode("/etc/hosts", 0x1FF);
+	}
 	...
 ```
 ## Credits
