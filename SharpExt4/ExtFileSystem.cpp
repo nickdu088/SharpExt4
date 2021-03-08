@@ -61,6 +61,11 @@ bool SharpExt4::ExtFileSystem::CanWrite::get()
     return !bd->fs->read_only;
 }
 
+/// <summary>
+/// Get specific file length
+/// </summary>
+/// <param name="path">file path</param>
+/// <returns>file length</returns>
 uint64_t SharpExt4::ExtFileSystem::GetFileLength(String^ path)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
@@ -79,11 +84,11 @@ uint64_t SharpExt4::ExtFileSystem::GetFileLength(String^ path)
 /// <summary>
 /// Create a symbolic link in file system
 /// </summary>
-/// <param name="target">absolute path of target</param>
+/// <param name="target">path of target</param>
 /// <param name="path">link name</param>
 void SharpExt4::ExtFileSystem::CreateSymLink(String^ target, String^ path)
 {
-    auto newTarget = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, target)).ToPointer();
+    auto newTarget = (char*)Marshal::StringToHGlobalAnsi(target).ToPointer();
     auto newPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
     auto r = ext4_fsymlink(newTarget, newPath);
     if (r != EOK)
@@ -217,11 +222,17 @@ SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ p
     throw gcnew IOException("Could not register partition.");
 }
 
+/// <summary>
+/// Override ToString
+/// </summary>
 String^ SharpExt4::ExtFileSystem::ToString()
 {
     return Name;
 }
 
+/// <summary>
+/// ExtFileSystem destructor
+/// </summary>
 SharpExt4::ExtFileSystem::~ExtFileSystem()
 {
     auto input_name = (char*)Marshal::StringToHGlobalAnsi(mountPoint).ToPointer();
@@ -231,6 +242,9 @@ SharpExt4::ExtFileSystem::~ExtFileSystem()
     ext4_block_fini(bd);
 }
 
+/// <summary>
+/// ExtFileSystem constructor
+/// </summary>
 SharpExt4::ExtFileSystem::ExtFileSystem()
 {
     bd = ext4_io_raw_dev_get();
