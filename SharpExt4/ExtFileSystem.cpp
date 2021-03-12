@@ -528,10 +528,10 @@ DateTime^ SharpExt4::ExtFileSystem::GetCreationTime(String^ path)
     {
         throw gcnew IOException("Could not get last access time.");
     }
-    return utcDateTime->AddSeconds(ctime);
+    return TheEpoch.AddSeconds(ctime);
 }
 
-void SharpExt4::ExtFileSystem::SetCreationTime(String^ path, DateTime^ newTime)
+void SharpExt4::ExtFileSystem::SetCreationTime(String^ path, DateTime newTime)
 {
     if (String::IsNullOrEmpty(path))
     {
@@ -539,14 +539,14 @@ void SharpExt4::ExtFileSystem::SetCreationTime(String^ path, DateTime^ newTime)
     }
 
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_ctime_set(internalPath, newTime->ToFileTime());
+    auto r = ext4_ctime_set(internalPath, (TheEpoch - newTime).TotalSeconds);
     if (r != EOK)
     {
         throw gcnew IOException("Could not set creation time.");
     }
 }
 
-DateTime^ SharpExt4::ExtFileSystem::GetLastAccessTime(String^ path)
+DateTime SharpExt4::ExtFileSystem::GetLastAccessTime(String^ path)
 {
     if (String::IsNullOrEmpty(path))
     {
@@ -559,10 +559,10 @@ DateTime^ SharpExt4::ExtFileSystem::GetLastAccessTime(String^ path)
     {
         throw gcnew IOException("Could not get last access time.");
     }
-    return utcDateTime->AddSeconds(atime);
+    return TheEpoch.AddSeconds(atime);
 }
 
-void SharpExt4::ExtFileSystem::SetLastAccessTime(String^ path, DateTime^ newTime)
+void SharpExt4::ExtFileSystem::SetLastAccessTime(String^ path, DateTime newTime)
 {
     if (String::IsNullOrEmpty(path))
     {
@@ -570,14 +570,14 @@ void SharpExt4::ExtFileSystem::SetLastAccessTime(String^ path, DateTime^ newTime
     }
 
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_atime_set(internalPath, newTime->ToFileTime());
+    auto r = ext4_atime_set(internalPath, (TheEpoch - newTime).TotalSeconds);
     if (r != EOK)
     {
         throw gcnew IOException("Could not set last access time.");
     }
 }
 
-DateTime^ SharpExt4::ExtFileSystem::GetLastWriteTime(String^ path)
+DateTime SharpExt4::ExtFileSystem::GetLastWriteTime(String^ path)
 {
     if (String::IsNullOrEmpty(path))
     {
@@ -590,10 +590,10 @@ DateTime^ SharpExt4::ExtFileSystem::GetLastWriteTime(String^ path)
     {
         throw gcnew IOException("Could not get last access time.");
     }
-    return utcDateTime->AddSeconds(mtime);
+    return TheEpoch.AddSeconds(mtime);
 }
 
-void SharpExt4::ExtFileSystem::SetLastWriteTime(String^ path, DateTime^ newTime)
+void SharpExt4::ExtFileSystem::SetLastWriteTime(String^ path, DateTime newTime)
 {
     if (String::IsNullOrEmpty(path))
     {
@@ -601,7 +601,7 @@ void SharpExt4::ExtFileSystem::SetLastWriteTime(String^ path, DateTime^ newTime)
     }
 
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    auto r = ext4_mtime_set(internalPath, newTime->ToFileTime());
+    auto r = ext4_mtime_set(internalPath, (TheEpoch - newTime).TotalSeconds);
     if (r != EOK)
     {
         throw gcnew IOException("Could not set last write time.");

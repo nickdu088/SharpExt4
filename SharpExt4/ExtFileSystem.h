@@ -45,7 +45,7 @@ namespace SharpExt4 {
 	private:
 		static String^ mountPoint = "/";
 		const char* devName = "ext4_fs";
-		static DateTime^ utcDateTime = gcnew DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
+		static DateTime TheEpoch = DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
 		struct ext4_blockdev* bd;
 		ExtFileSystem();
 		void DoSearch(List<String^>^ results, String^ path, Regex^ regex, bool subFolders, bool dirs, bool files);
@@ -72,11 +72,11 @@ namespace SharpExt4 {
 
 #pragma region Common API
 		DateTime^ GetCreationTime(String^ path);
-		void SetCreationTime(String^ path, DateTime^ newTime);
-		DateTime^ GetLastAccessTime(String^ path);
-		void SetLastAccessTime(String^ path, DateTime^ newTime);
-		DateTime^ GetLastWriteTime(String^ path);
-		void SetLastWriteTime(String^ path, DateTime^ newTime);
+		void SetCreationTime(String^ path, DateTime newTime);
+		DateTime GetLastAccessTime(String^ path);
+		void SetLastAccessTime(String^ path, DateTime newTime);
+		DateTime GetLastWriteTime(String^ path);
+		void SetLastWriteTime(String^ path, DateTime newTime);
 		uint64_t GetFileLength(String^ path);
 		void CreateSymLink(String^ target, String^ path);
 		void CreateHardLink(String^ target, String^ path);
