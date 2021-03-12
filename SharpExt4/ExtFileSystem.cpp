@@ -345,7 +345,35 @@ void SharpExt4::ExtFileSystem::CreateDirectory(String^ path)
 
 void SharpExt4::ExtFileSystem::CopyFile(String^ sourceFile, String^ destinationFile, bool overwrite)
 {
-    throw gcnew System::NotImplementedException();
+    if (String::IsNullOrEmpty(sourceFile) || String::IsNullOrEmpty(destinationFile))
+    {
+        throw gcnew ArgumentNullException("sourceFileName or destFileName is null.");
+    }
+
+    if (!FileExists(sourceFile))
+    {
+        throw gcnew IOException("Could not open file '" + sourceFile + "'.");
+    }
+
+    if (FileExists(sourceFile))
+    {
+        if (!overwrite)
+        {
+            throw gcnew IOException("File exists '" + destinationFile + "'.");
+        }
+
+        DeleteFile(destinationFile);
+    }
+
+    auto sour = OpenFile(destinationFile, FileMode::Open, FileAccess::Read);
+    auto dest = OpenFile(destinationFile, FileMode::CreateNew, FileAccess::Write);
+    auto len = GetFileLength(sourceFile);
+    auto buf = gcnew array<Byte>(len);
+
+    sour->Read(buf, 0, len);
+    dest->Write(buf, 0, len);
+    sour->Close();
+    dest->Close();
 }
 
 void SharpExt4::ExtFileSystem::RenameFile(String^ sourceFileName, String^ destFileName)
