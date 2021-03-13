@@ -69,12 +69,12 @@ bool SharpExt4::ExtFileSystem::CanWrite::get()
 uint64_t SharpExt4::ExtFileSystem::GetFileLength(String^ path)
 {
     auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(mountPoint, path)).ToPointer();
-    ext4_file* f = nullptr;
-    auto r = ext4_fopen(f, internalPath, "r");
+    ext4_file f = { 0 };
+    auto r = ext4_fopen(&f, internalPath, "r");
     if (r == EOK)
     {
-        auto size = ext4_fsize(f);
-        ext4_fclose(f);
+        auto size = ext4_fsize(&f);
+        ext4_fclose(&f);
         return size;
     }
 
@@ -355,7 +355,7 @@ void SharpExt4::ExtFileSystem::CopyFile(String^ sourceFile, String^ destinationF
         throw gcnew IOException("Could not open file '" + sourceFile + "'.");
     }
 
-    if (FileExists(sourceFile))
+    if (FileExists(destinationFile))
     {
         if (!overwrite)
         {
@@ -365,10 +365,11 @@ void SharpExt4::ExtFileSystem::CopyFile(String^ sourceFile, String^ destinationF
         DeleteFile(destinationFile);
     }
 
-    auto sour = OpenFile(destinationFile, FileMode::Open, FileAccess::Read);
-    auto dest = OpenFile(destinationFile, FileMode::CreateNew, FileAccess::Write);
     auto len = GetFileLength(sourceFile);
     auto buf = gcnew array<Byte>(len);
+
+    auto sour = OpenFile(sourceFile, FileMode::Open, FileAccess::Read);
+    auto dest = OpenFile(destinationFile, FileMode::CreateNew, FileAccess::Write);
 
     sour->Read(buf, 0, len);
     dest->Write(buf, 0, len);
