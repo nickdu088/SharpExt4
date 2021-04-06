@@ -24,6 +24,7 @@ SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. T
 ## Compile
 #### Visual Studio 2019 C/C++ (It can be simply modified to be compiled in Visual Studio 2013)
 #### .Net Framework 4.5
+#### .Net Core (It can be easily to compiled as .Net Core library)
 
 ## How to use the Library
 Here's a few simple examples.
