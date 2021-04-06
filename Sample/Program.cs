@@ -51,7 +51,7 @@ namespace Sample
             //777(OCT) = 511(DEC) = 0x1FF(HEX)
             fs.SetMode("/etc/hosts",511);
         }
-    static void ReadFileContent(ExtFileSystem fs)
+        static void ReadFileContent(ExtFileSystem fs)
         {
             //Open a file for read
             var file = fs.OpenFile("/etc/shells", FileMode.Open, FileAccess.Read);
