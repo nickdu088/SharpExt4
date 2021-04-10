@@ -95,6 +95,9 @@ Here's a few simple examples.
 	}
 	...
 ```
+[How to use SharpExt4 to access Raspberry Pi SD Card Linux partition](https://www.nickdu.com/?p=919).
+
+
 ## Credits
 
 The core library of SharpExt4 was taken from lwext4:
