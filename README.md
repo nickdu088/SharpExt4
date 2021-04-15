@@ -24,9 +24,12 @@ SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. T
 ## Compile
 #### Visual Studio 2019 C/C++ (It can be simply modified to be compiled in Visual Studio 2013)
 #### .Net Framework 4.5
-#### .Net Core (It can be easily to compiled as .Net Core library)
+#### .Net Core 3.1
 
 ## How to use the Library
+
+[How to use SharpExt4 to access Raspberry Pi SD Card Linux partition](https://www.nickdu.com/?p=919).
+
 Here's a few simple examples.
 #### How to read a file from ext4 disk image
 ```
@@ -95,7 +98,6 @@ Here's a few simple examples.
 	}
 	...
 ```
-[How to use SharpExt4 to access Raspberry Pi SD Card Linux partition](https://www.nickdu.com/?p=919).
 
 
 ## Credits
