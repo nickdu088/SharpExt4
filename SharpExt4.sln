@@ -9,6 +9,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lwext4", "lwext4\lwext4.vcx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "Sample\Sample.csproj", "{B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharpExt4.Core", "SharpExt4\SharpExt4.Core.vcxproj", "{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{34D8A968-F941-43E7-AA4E-19C264B995B0} = {34D8A968-F941-43E7-AA4E-19C264B995B0}
+		{B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A} = {B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +61,18 @@ Global
 		{B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A}.Release|x64.Build.0 = Release|Any CPU
 		{B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A}.Release|x86.ActiveCfg = Release|Any CPU
 		{B79D4B8D-F64B-4EFC-ADC1-6247D53AA30A}.Release|x86.Build.0 = Release|Any CPU
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|Any CPU.Build.0 = Debug|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|x64.ActiveCfg = Debug|x64
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|x64.Build.0 = Debug|x64
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|x86.ActiveCfg = Debug|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Debug|x86.Build.0 = Debug|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|Any CPU.ActiveCfg = Release|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|Any CPU.Build.0 = Release|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|x64.ActiveCfg = Release|x64
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|x64.Build.0 = Release|x64
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|x86.ActiveCfg = Release|Win32
+		{B62D0F3F-DC0B-49A8-9BB8-9604564801C5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
