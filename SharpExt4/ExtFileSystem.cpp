@@ -365,14 +365,17 @@ void SharpExt4::ExtFileSystem::CopyFile(String^ sourceFile, String^ destinationF
         DeleteFile(destinationFile);
     }
 
-    auto len = GetFileLength(sourceFile);
-    auto buf = gcnew array<Byte>(len);
-
+    int bufferSize = 64 * 1024; //64k buffer
     auto sour = OpenFile(sourceFile, FileMode::Open, FileAccess::Read);
     auto dest = OpenFile(destinationFile, FileMode::CreateNew, FileAccess::Write);
+    auto buf = gcnew array<Byte>(bufferSize);
 
-    sour->Read(buf, 0, len);
-    dest->Write(buf, 0, len);
+    int bytesRead = -1;
+    while ((bytesRead = sour->Read(buf, 0, bufferSize)) > 0)
+    {
+        dest->Write(buf, 0, bytesRead);
+    }
+
     sour->Close();
     dest->Close();
 }
