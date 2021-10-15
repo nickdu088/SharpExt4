@@ -87,7 +87,7 @@ namespace SharpExt4 {
 		/// <summary>
 		/// Linux disk partitions
 		/// </summary>
-		property IList<Partition^>^ Parititions
+		property IList<Partition^>^ Partitions
 		{
 			IList<Partition^>^ get();
 		}

@@ -152,7 +152,7 @@ SharpExt4::Geometry^ SharpExt4::ExtDisk::Geometry::get()
 /// <summary>
 /// Linux disk partitions
 /// </summary>
-IList<SharpExt4::Partition^>^ SharpExt4::ExtDisk::Parititions::get()
+IList<SharpExt4::Partition^>^ SharpExt4::ExtDisk::Partitions::get()
 {
 	return partitions;
 }
