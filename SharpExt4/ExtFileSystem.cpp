@@ -59,7 +59,7 @@ String^ SharpExt4::ExtFileSystem::VolumeLabel::get()
 
 bool SharpExt4::ExtFileSystem::CanWrite::get()
 {
-    return !bd->fs->read_only;
+    return !disk->GetBlockDev()->fs->read_only;
 }
 
 /// <summary>
@@ -200,16 +200,16 @@ void SharpExt4::ExtFileSystem::Truncate(String^ path, uint64_t size)
 /// Open a given Linux partition
 /// </summary>
 /// <param name="path">Partition to open</param>
-SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ partition)
+SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::ExtDisk^ disk, SharpExt4::Partition^ partition)
 {
-    auto fs = gcnew ExtFileSystem();
+    auto fs = gcnew ExtFileSystem(disk);
 
     struct ext4_bcache* bc = nullptr;
-    fs->bd->part_offset = partition->Offset;
-    fs->bd->part_size = partition->Size;
+    disk->GetBlockDev()->part_offset = partition->Offset;
+    disk->GetBlockDev()->part_size = partition->Size;
     itoa(rand(), fs->devName, 16);
     fs->mountPoint = String::Format("/{0}/", gcnew String(fs->devName));
-    auto r = ext4_device_register(fs->bd, fs->devName);
+    auto r = ext4_device_register(disk->GetBlockDev(), fs->devName);
     if (r == EOK)
     {
         auto input_name = (char*)Marshal::StringToHGlobalAnsi(fs->mountPoint).ToPointer();
@@ -241,17 +241,17 @@ SharpExt4::ExtFileSystem::~ExtFileSystem()
     ext4_umount(input_name);
     ext4_device_unregister(devName);
 
-    ext4_block_fini(bd);
+    ext4_block_fini(disk->GetBlockDev());
     delete[] devName;
 }
 
 /// <summary>
 /// ExtFileSystem constructor
 /// </summary>
-SharpExt4::ExtFileSystem::ExtFileSystem()
+SharpExt4::ExtFileSystem::ExtFileSystem(ExtDisk^ disk)
 {
-    bd = ext4_io_raw_dev_get();
-    ext4_block_init(bd);
+    this->disk = disk;
+    ext4_block_init(disk->GetBlockDev());
     devName = new char[CONFIG_EXT4_MAX_BLOCKDEV_NAME];
     memset(devName, 0, CONFIG_EXT4_MAX_BLOCKDEV_NAME);
 }

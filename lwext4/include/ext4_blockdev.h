@@ -87,7 +87,7 @@ struct ext4_blockdev_iface {
 	uint64_t ph_bcnt;
 
 	/**@brief   Block size buffer: physical*/
-	uint8_t *ph_bbuf;
+	uint8_t ph_bbuf[512];
 
 	/**@brief   Reference counter to block device interface*/
 	uint32_t ph_refctr;
@@ -106,6 +106,9 @@ struct ext4_blockdev_iface {
 
 	/**@brief   Sector/Track : physical*/
 	uint32_t ph_scnt;
+
+	char fname[512];
+	void* dev_file;
 };
 
 /**@brief   Definition of the simple block device.*/

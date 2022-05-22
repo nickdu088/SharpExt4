@@ -27,9 +27,7 @@
  */
 #pragma once
 
-#include <tchar.h>
 #include <stdint.h>
-#include <Windows.h>
 #include "Geometry.h"
 #include "../lwext4/include/ext4.h"
 #include "../lwext4/include/ext4_blockdev.h"
@@ -97,6 +95,7 @@ namespace SharpExt4 {
 		/// </summary>
 		/// <returns>MBR sector</returns>
 		array<Byte>^ GetMasterBootRecord();
+		ext4_blockdev* GetBlockDev() { return bd; }
 		~ExtDisk();
 	};
 }

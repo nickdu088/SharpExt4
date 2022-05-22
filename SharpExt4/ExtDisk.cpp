@@ -40,8 +40,8 @@ SharpExt4::ExtDisk::ExtDisk(String^ diskPath)
 {
 	diskPath = diskPath;
 	auto input_name = (char*)Marshal::StringToHGlobalAnsi(diskPath).ToPointer();
-	ext4_io_raw_filename(input_name);
-	bd = ext4_io_raw_dev_get();
+	//ext4_io_raw_filename(input_name);
+	bd = ext4_io_raw_dev_get(input_name);
 }
 
 /// <summary>

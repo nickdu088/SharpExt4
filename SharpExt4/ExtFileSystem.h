@@ -34,8 +34,8 @@ using namespace System::Runtime::InteropServices;
 using namespace System::Text::RegularExpressions;
 
 #include "Partition.h"
-#include "../lwext4/include/ext4_blockdev.h"
 #include "ExtDirEntry.h"
+#include "ExtDisk.h"
 
 namespace SharpExt4 {
 	ref class ExtFileStream;
@@ -46,8 +46,8 @@ namespace SharpExt4 {
 		String^ mountPoint = "/";
 		char* devName = nullptr;
 		static DateTime TheEpoch = DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
-		struct ext4_blockdev* bd;
-		ExtFileSystem();
+		SharpExt4::ExtDisk^ disk = nullptr;
+		ExtFileSystem(ExtDisk^ disk);
 		void DoSearch(List<String^>^ results, String^ path, Regex^ regex, bool subFolders, bool dirs, bool files);
 		List<ExtDirEntry^>^ GetDirectory(String^ path);
 
@@ -85,7 +85,7 @@ namespace SharpExt4 {
 		Tuple<uint32_t, uint32_t>^ GetOwner(String^ path);
 		void SetOwner(String^ path, uint32_t uid, uint32_t gid);
 		void Truncate(String^ path, uint64_t size);
-		static ExtFileSystem^ Open(SharpExt4::Partition^ partition);
+		static ExtFileSystem^ Open(SharpExt4::ExtDisk^ disk, SharpExt4::Partition^ partition);
 #pragma endregion
 
 		property String^ Name { String^ get(); }
