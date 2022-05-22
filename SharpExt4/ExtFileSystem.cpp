@@ -32,6 +32,7 @@
 #include "../lwext4/include/ext4_fs.h"
 #include "ExtFileStream.h"
 #include "io_raw.h"
+#include <stdlib.h>
 
 String^ SharpExt4::ExtFileSystem::MountPoint::get()
 {
@@ -206,7 +207,8 @@ SharpExt4::ExtFileSystem^ SharpExt4::ExtFileSystem::Open(SharpExt4::Partition^ p
     struct ext4_bcache* bc = nullptr;
     fs->bd->part_offset = partition->Offset;
     fs->bd->part_size = partition->Size;
-
+    itoa(rand(), fs->devName, 16);
+    fs->mountPoint = String::Format("/{0}/", gcnew String(fs->devName));
     auto r = ext4_device_register(fs->bd, fs->devName);
     if (r == EOK)
     {
@@ -240,6 +242,7 @@ SharpExt4::ExtFileSystem::~ExtFileSystem()
     ext4_device_unregister(devName);
 
     ext4_block_fini(bd);
+    delete[] devName;
 }
 
 /// <summary>
@@ -249,6 +252,8 @@ SharpExt4::ExtFileSystem::ExtFileSystem()
 {
     bd = ext4_io_raw_dev_get();
     ext4_block_init(bd);
+    devName = new char[CONFIG_EXT4_MAX_BLOCKDEV_NAME];
+    memset(devName, 0, CONFIG_EXT4_MAX_BLOCKDEV_NAME);
 }
 
 Regex^ SharpExt4::ConvertWildcardsToRegEx(String^ pattern)
@@ -258,7 +263,6 @@ Regex^ SharpExt4::ConvertWildcardsToRegEx(String^ pattern)
         pattern += ".";
     }
 
-    //String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\?", "[^.]") + "$";
     String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
     return gcnew Regex(query, RegexOptions::IgnoreCase | RegexOptions::CultureInvariant);
 }

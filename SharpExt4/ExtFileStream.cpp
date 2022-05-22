@@ -48,7 +48,7 @@ SharpExt4::ExtFileStream::ExtFileStream(SharpExt4::ExtFileSystem^ fs, String^ pa
         }
     }
     file = new ext4_file();
-    auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(ExtFileSystem::MountPoint, path)).ToPointer();
+    auto internalPath = (char*)Marshal::StringToHGlobalAnsi(CombinePaths(fs->MountPoint, path)).ToPointer();
 
     if (!fs->FileExists(path))
     {

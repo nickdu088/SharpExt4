@@ -43,8 +43,8 @@ namespace SharpExt4 {
 	public ref class ExtFileSystem sealed
 	{
 	private:
-		static String^ mountPoint = "/";
-		const char* devName = "ext4_fs";
+		String^ mountPoint = "/";
+		char* devName = nullptr;
 		static DateTime TheEpoch = DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind::Utc);
 		struct ext4_blockdev* bd;
 		ExtFileSystem();
@@ -92,7 +92,7 @@ namespace SharpExt4 {
 		property String^ Description { String^ get(); }
 		property String^ VolumeLabel { String^ get(); }
 		property bool CanWrite { bool get(); }
-		static property String^ MountPoint { String^ get(); }
+		property String^ MountPoint { String^ get(); }
 
 		String^ ToString() override;
 		~ExtFileSystem();
