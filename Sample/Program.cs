@@ -37,10 +37,19 @@ namespace Sample
     {
         static void Main(string[] args)
         {
-            //Open a Linux ext4 disk image
+            const ulong SECTOR_SIZE = 512;
+
+            //Open MBR disk sample
+            //var mbr = DiskPartitionInfo.DiskPartitionInfo.ReadMbr().FromPath(@".\ext4.img");
+            //var partitions = mbr.Partitions.Select(x => new Partition() { Offset = x.FirstPartitionSector * SECTOR_SIZE, Size = x.Length * SECTOR_SIZE }).ToList();
+
+            //Open GPT disk sample
+            var gpt = DiskPartitionInfo.DiskPartitionInfo.ReadGpt().Primary().FromPath(@".\ext4.img");
+            var partitions = gpt.Partitions.Select(x => new Partition() { Offset = x.FirstLba * SECTOR_SIZE, Size = (x.LastLba - x.FirstLba) * SECTOR_SIZE }).ToArray();
+            
             var disk = ExtDisk.Open(@".\ext4.img");
             //Get the file system
-            var fs = ExtFileSystem.Open(disk, disk.Partitions[0]);
+            var fs = ExtFileSystem.Open(disk, partitions[1]);
             ReadFileContent(fs);
             ListAllFiles(fs);
             CreateFile(fs);
@@ -49,7 +58,7 @@ namespace Sample
         static void ChangeFileMode(ExtFileSystem fs)
         {
             //777(OCT) = 511(DEC) = 0x1FF(HEX)
-            fs.SetMode("/etc/hosts",511);
+            fs.SetMode("/etc/hosts", 511);
         }
         static void ReadFileContent(ExtFileSystem fs)
         {
@@ -84,3 +93,4 @@ namespace Sample
         }
     }
 }
+
