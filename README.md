@@ -22,9 +22,10 @@ I port the lwext4 backbone over to MSVC compiler (Visual Studio 2019), and creat
 SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
 
 ## Compile
-#### Visual Studio 2019 C/C++ (It can be simply modified to be compiled in Visual Studio 2013)
-#### .Net Framework 4.5
-#### .Net Core 3.1 .Net 5
+#### Visual Studio 2022 C/C++ (It can be simply modified to be compiled in Visual Studio 2013 and Visual Studio 2019)
+#### .Net Framework 4.8
+#### .Net Core 3.1 
+#### .Net 6
 
 ## How to use the Library
 
@@ -104,3 +105,6 @@ Here's a few simple examples.
 
 The core library of SharpExt4 was taken from lwext4:
 * https://github.com/gkostka/lwext4
+
+The GPT partition was taken from DiskPartitionInfo:
+* https://github.com/f1x3d/DiskPartitionInfo
