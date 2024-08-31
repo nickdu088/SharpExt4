@@ -34,6 +34,8 @@
 #include "io_raw.h"
 #include <stdlib.h>
 
+using namespace System::Collections::Generic;
+
 String^ SharpExt4::ExtFileSystem::MountPoint::get()
 {
     return mountPoint;
