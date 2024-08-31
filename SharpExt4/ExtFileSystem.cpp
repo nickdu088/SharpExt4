@@ -263,7 +263,7 @@ Regex^ SharpExt4::ConvertWildcardsToRegEx(String^ pattern)
         pattern += ".";
     }
 
-    String^ query = "^" + pattern->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
+    String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
     return gcnew Regex(query, RegexOptions::IgnoreCase | RegexOptions::CultureInvariant);
 }
 
