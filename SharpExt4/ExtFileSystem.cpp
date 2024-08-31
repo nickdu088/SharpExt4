@@ -34,8 +34,6 @@
 #include "io_raw.h"
 #include <stdlib.h>
 
-using namespace System::Collections::Generic;
-
 String^ SharpExt4::ExtFileSystem::MountPoint::get()
 {
     return mountPoint;
@@ -265,7 +263,7 @@ Regex^ SharpExt4::ConvertWildcardsToRegEx(String^ pattern)
         pattern += ".";
     }
 
-    String^ query = "^" + Regex::Escape(pattern)->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
+    String^ query = "^" + pattern->Replace("\\*", ".*")->Replace("\\.", ".*") + "$";
     return gcnew Regex(query, RegexOptions::IgnoreCase | RegexOptions::CultureInvariant);
 }
 
