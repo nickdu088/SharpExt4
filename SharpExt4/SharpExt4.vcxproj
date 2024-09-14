@@ -159,11 +159,6 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DiskPartitionInfo\DiskPartitionInfo.csproj">
       <Project>{bdb2ed4a-fdb0-4071-a415-8ef1d0297b1f}</Project>
     </ProjectReference>
