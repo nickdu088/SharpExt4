@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "pch.h"
 #include "Partition.h"
 
 SharpExt4::Partition::Partition()

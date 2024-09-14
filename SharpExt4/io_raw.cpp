@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "pch.h"
 #include "../lwext4/include/ext4_config.h"
 #include "../lwext4/include/ext4_blockdev.h"
 #include "../lwext4/include/ext4_errno.h"

@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "pch.h"
 #include "ExtDirEntry.h"
 
 SharpExt4::ExtDirEntry::ExtDirEntry(String^ name, uint64_t length, EntryType type)

@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "pch.h"
 #include <cstring>
 #include "ExtFileSystem.h"
 #include "../lwext4/include/ext4.h"
