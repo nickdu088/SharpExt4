@@ -5,20 +5,20 @@
 
 The main purpose of this SharpExt4 project is to provide full access to Linux ext2/3/4 filesystem from Windows .Net application.
 
-For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. Especially for a C# .Net programmer, it is hard to find a .Net library, which can provide full access to Linux ext2/3/4 filesystem.
+For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. C# .Net programmers espcially find it hard to search for a .Net library, which can provide full access to Linux ext2/3/4 filesystem.
 
 These are the findings so far:
 1. [DiscUtils](https://github.com/DiscUtils/DiscUtils), is a .NET library to read and write ISO files and Virtual Machine disk files (VHD, VDI, XVA, VMDK, etc). DiscUtils also provides limited access to ext2/3/4 filesystem.
 2. Ext2Fsd is another Windows file system driver for the Ext2, Ext3, and Ext4 file systems. It allows Windows to read Linux file systems natively, providing access to the file system via a drive letter that any program can access.
 3. DiskInternals Linux Reader is a freeware application from DiskInternals, developers of data recovery software. 
 4. Ext2explore is an open-source application that works similarly to DiskInternals Linux Reader—but only for Ext4, Ext3, and Ext2 partitions.
-5. The [lwext4](https://github.com/gkostka/lwext4) project is to provide ext2/3/4 filesystem for microcontrollers.
+5. The [lwext4](https://github.com/gkostka/lwext4) project provides the ext2/3/4 filesystem for microcontrollers.
 
 ## Overview
 
-The lwext4 is a portable C project for microcontrollers and the library has some cool and unique features. Lwext4 is an excellent choice for SD/MMC card, USB flash drive or any other wear leveled memory types. In Windows, the author recommended to use [MSYS-2](https://sourceforge.net/projects/msys2/)
+The lwext4 is a portable C project for microcontrollers and has many cool and unique features. Lwext4 is an excellent choice for SD/MMC cards, USB flash drives or any other wear leveled memory types. In Windows, the author recommended to use [MSYS-2](https://sourceforge.net/projects/msys2/)
 
-I port the lwext4 backbone over to MSVC compiler (Visual Studio 2019), and create the lwext4 as a static lib.
+I imported the lwext4 backbone over to MSVC compiler (Visual Studio 2019), and created the lwext4 as a static lib.
 SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
 
 ## Compile
