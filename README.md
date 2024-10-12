@@ -108,3 +108,8 @@ The core library of SharpExt4 was taken from lwext4:
 
 The GPT partition was taken from DiskPartitionInfo:
 * https://github.com/f1x3d/DiskPartitionInfo
+
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nickdu088/SharpExt4&type=Date)](https://star-history.com/#nickdu088/SharpExt4&Date)
