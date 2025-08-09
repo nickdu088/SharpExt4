@@ -5,7 +5,7 @@
 
 The main purpose of this SharpExt4 project is to provide full access to Linux ext2/3/4 filesystem from Windows .Net application.
 
-For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. C# .Net programmers espcially find it hard to search for a .Net library, which can provide full access to Linux ext2/3/4 filesystem.
+For a day-to-day Windows user, it is not easy to read/write ext2/3/4 filesystem directly from Windows environment. C# .Net programmers especially find it hard to search for a .Net library, which can provide full access to Linux ext2/3/4 filesystem.
 
 These are the findings so far:
 1. [DiscUtils](https://github.com/DiscUtils/DiscUtils), is a .NET library to read and write ISO files and Virtual Machine disk files (VHD, VDI, XVA, VMDK, etc). DiscUtils also provides limited access to ext2/3/4 filesystem.
@@ -19,7 +19,7 @@ These are the findings so far:
 The lwext4 is a portable C project for microcontrollers and has many cool and unique features. Lwext4 is an excellent choice for SD/MMC cards, USB flash drives or any other wear leveled memory types. In Windows, the author recommended to use [MSYS-2](https://sourceforge.net/projects/msys2/)
 
 I imported the lwext4 backbone over to MSVC compiler (Visual Studio 2019), and created the lwext4 as a static lib.
-SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
+SharpExt4 is a clr wrapper of lwext4 to provide modern .Net application access. The SharpExt4 borrows the [DiscUtils](https://github.com/DiscUtils/DiscUtils) class concept and creates a friendly interface for .Net
 
 ## Compile
 #### Visual Studio 2022 C/C++ (It can be simply modified to be compiled in Visual Studio 2013 and Visual Studio 2019)
@@ -32,6 +32,7 @@ SharpExt4 is a clr wrapper of lwext4 to provide modem .Net application access. T
 [How to use SharpExt4 to access Raspberry Pi SD Card Linux partition](https://www.nickdu.com/?p=919).
 
 Here's a few simple examples.
+
 #### How to read a file from ext4 disk image
 ```
 	...
@@ -101,6 +102,7 @@ Here's a few simple examples.
 ```
 
 
+
 ## Credits
 
 The core library of SharpExt4 was taken from lwext4:
@@ -109,7 +111,21 @@ The core library of SharpExt4 was taken from lwext4:
 The GPT partition was taken from DiskPartitionInfo:
 * https://github.com/f1x3d/DiskPartitionInfo
 
+## 📁 Related Project
+
+#### 🔗 [**SharpExt4Explorer**](https://github.com/nickdu088/SharpExt4Explorer)
+
+**SharpExt4Explorer** is a Windows GUI file browser built on top of the SharpExt4 library.  
+It allows users to visually browse, read, and extract files from Linux ext2/3/4 disk images or physical drives, without writing a single line of code.
+
+Ideal for:
+- Inspecting Raspberry Pi SD cards
+- Recovering files from Linux partitions
+- Working with ext images directly from Windows
+
+![Ext4Explorer Screenshot](https://github.com/nickdu088/SharpExt4Explorer/blob/main/images/file.png)
 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nickdu088/SharpExt4&type=Date)](https://star-history.com/#nickdu088/SharpExt4&Date)
+
