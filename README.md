@@ -116,12 +116,7 @@ The GPT partition was taken from DiskPartitionInfo:
 #### 🔗 [**SharpExt4Explorer**](https://github.com/nickdu088/SharpExt4Explorer)
 
 **SharpExt4Explorer** is a Windows GUI file browser built on top of the SharpExt4 library.  
-It allows users to visually browse, read, and extract files from Linux ext2/3/4 disk images or physical drives, without writing a single line of code.
-
-Ideal for:
-- Inspecting Raspberry Pi SD cards
-- Recovering files from Linux partitions
-- Working with ext images directly from Windows
+It allows users to visually browse, read, write, and extract files from Linux ext2/3/4 disk images or physical drives, without writing a single line of code.
 
 ![Ext4Explorer Screenshot](https://github.com/nickdu088/SharpExt4Explorer/blob/main/images/file.png)
 
