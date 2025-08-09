@@ -34,12 +34,12 @@ jobs:
 
       # Zip x86 output
       - name: Zip x86 build
-        run: Compress-Archive -Path SharpExt4\bin\x86\Release\* -DestinationPath SharpExt4-x86-${{ github.ref_name }}.zip
+        run: Compress-Archive -Path Release\* -DestinationPath SharpExt4-x86-${{ github.ref_name }}.zip
         shell: pwsh
 
       # Zip x64 output
       - name: Zip x64 build
-        run: Compress-Archive -Path SharpExt4\bin\x64\Release\* -DestinationPath SharpExt4-x64-${{ github.ref_name }}.zip
+        run: Compress-Archive -Path x64\Release\* -DestinationPath SharpExt4-x64-${{ github.ref_name }}.zip
         shell: pwsh
 
       # Upload both zip files to GitHub Release
