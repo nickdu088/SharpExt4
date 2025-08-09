@@ -1,0 +1,40 @@
+name: GitHub Release
+
+on:
+  push:
+    # Trigger only on tags like v1.0.0, v2.1.5, etc.
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET (for publishing artifacts if needed)
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'  # or other appropriate version
+
+      - name: Build solution
+        run: dotnet build SharpExt4.sln --configuration Release
+
+      # Optional: Pack or publish NuGet or binaries
+      # - name: Pack library
+      #   run: dotnet pack path/to/Project.csproj --configuration Release --output ./artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            Release for version ${{ github.ref_name }}
+            ## Changes
+            - Add changelog or highlights here.
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
